@@ -604,3 +604,42 @@
   .referral-result { min-height: 190px; }
   .referral-calculator__footer { padding: 20px; }
 }
+
+/* Compact product-page rhythm and face-safe photo overlays */
+@media (max-width: 1080px) {
+  .sales-visual { min-height: 520px; }
+  .work-scene { min-height: 580px; }
+}
+
+@media (max-width: 720px) {
+  .sales-hero { padding-block: 34px 44px; }
+  .sales-visual { min-height: 420px; }
+  .sales-float-one {
+    top: 4%;
+    right: auto;
+    left: 4%;
+  }
+  .sales-float-two {
+    right: 4%;
+    bottom: 4%;
+  }
+  .sales-float-three {
+    bottom: 22%;
+    left: 4%;
+  }
+  .work-scene { min-height: 540px; }
+  .work-scene > img { object-position: center 24%; }
+}
+
+@media (max-width: 480px) {
+  .sales-visual { min-height: 370px; }
+  .sales-float {
+    max-width: min(168px, 48%);
+    padding: 9px 11px;
+  }
+  .sales-float strong { font-size: 12px; line-height: 1.2; }
+  .sales-float small { font-size: 9px; }
+  .sales-float-three { bottom: 24%; }
+  .work-scene { min-height: 500px; }
+  .work-scene-content { padding: 24px 20px; }
+}
