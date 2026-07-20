@@ -60,7 +60,7 @@ if (referralRange) {
   const updateReferralCalculator = () => {
     const count = Number(referralRange.value);
     const { tariff, months } = getTier(count);
-    const reward = count * 500;
+    const reward = count * 250;
     const savings = months ? (5000 - tariff) * months : 0;
     const progress = ((count - Number(referralRange.min)) / (Number(referralRange.max) - Number(referralRange.min))) * 100;
 
@@ -68,7 +68,7 @@ if (referralRange) {
     countOutput.textContent = String(count);
     tariffOutput.textContent = `${money.format(tariff)} ₽`;
     rewardOutput.textContent = `${money.format(reward)} ₽`;
-    rewardNote.textContent = count ? `500 ₽ × ${count} ${masterWord(count)}` : 'пригласите первого мастера';
+    rewardNote.textContent = count ? `250 ₽ × ${count} ${masterWord(count)}` : 'пригласите первого мастера';
     savingsOutput.textContent = `${money.format(savings)} ₽`;
 
     if (months === 0) {
