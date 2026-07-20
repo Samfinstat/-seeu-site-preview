@@ -7,8 +7,11 @@ const roleInputs = [...form.querySelectorAll('[name="role"]')];
 const launchInputs = [...form.querySelectorAll('[name="launchMode"]')];
 const paymentInputs = [...form.querySelectorAll('[name="paymentMode"]')];
 const resultDialog = document.querySelector('#brief-result');
+const scheduleDialog = document.querySelector('#schedule-dialog');
+const aiDialog = document.querySelector('#ai-dialog');
 let currentStep = 1;
 let uploadedPhoto = '';
+let uploadedGallery = [];
 
 const text = (name) => form.elements[name]?.value?.trim?.() || '';
 const value = (name) => form.elements[name]?.value || '';
@@ -35,6 +38,7 @@ function setStep(number, shouldScroll = true) {
   document.querySelectorAll('.brief-progress li').forEach((item, index) => item.classList.toggle('is-active', index <= currentStep - 1));
   prevButton.hidden = currentStep === 1;
   nextButton.hidden = currentStep === 4;
+  nextButton.disabled = currentStep === 4;
   submitButton.hidden = currentStep !== 4;
   if (currentStep === 3) updateDetailsMode();
   if (currentStep === 4) renderSummary();
@@ -137,7 +141,7 @@ function collectExtendedData() {
     theme: checked('theme') || 'coral',
     photo: uploadedPhoto,
     advantages: parseLines(text('advantages')),
-    gallery: parseLines(text('portfolioLinks')).slice(0, 8),
+    gallery: uploadedGallery,
     reviews: parseReviews(text('reviews')).slice(0, 8),
     experience: text('experience'),
     workplace: text('workplace'),
@@ -204,15 +208,92 @@ function showResult(manager, data) {
   resultDialog.showModal();
 }
 
-async function readPhoto() {
-  const file = form.elements.photo?.files?.[0];
-  if (!file) return uploadedPhoto;
-  if (file.size > 1.5 * 1024 * 1024) throw new Error('Выберите фотографию размером до 1,5 МБ.');
+function resizeImage(file, maxSide = 1200, quality = .78) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+        canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      image.onerror = reject;
+      image.src = reader.result;
+    };
     reader.onerror = reject;
     reader.readAsDataURL(file);
+  });
+}
+
+async function readPhotos() {
+  const mainFile = form.elements.photo?.files?.[0];
+  if (mainFile) uploadedPhoto = await resizeImage(mainFile, 1400, .8);
+  const files = [...(form.elements.portfolioPhotos?.files || [])];
+  if (files.length > 10) throw new Error('Можно загрузить не более 10 дополнительных фотографий.');
+  uploadedGallery = [];
+  for (const file of files) uploadedGallery.push(await resizeImage(file, 900, .7));
+}
+
+const dayNames = [
+  ['Пн', 'Понедельник'], ['Вт', 'Вторник'], ['Ср', 'Среда'], ['Чт', 'Четверг'],
+  ['Пт', 'Пятница'], ['Сб', 'Суббота'], ['Вс', 'Воскресенье']
+];
+
+function timeOptions(selected) {
+  const options = [];
+  for (let hour = 8; hour <= 22; hour += 1) {
+    for (const minute of [0, 30]) {
+      if (hour === 22 && minute === 30) continue;
+      const value = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+      options.push(`<option${value === selected ? ' selected' : ''}>${value}</option>`);
+    }
+  }
+  return options.join('');
+}
+
+function initSchedule() {
+  const grid = document.querySelector('[data-schedule-grid]');
+  grid.innerHTML = dayNames.map(([short, full], index) => `<div class="schedule-row"><label><input type="checkbox" data-day="${short}"${index < 5 ? ' checked' : ''}><span><b>${short}</b><small>${full}</small></span></label><div class="schedule-time"><select data-time-from aria-label="Начало работы">${timeOptions('09:00')}</select><i>—</i><select data-time-to aria-label="Конец работы">${timeOptions('18:00')}</select></div><em>Выходной</em></div>`).join('');
+  grid.querySelectorAll('[data-day]').forEach(input => input.addEventListener('change', () => input.closest('.schedule-row').classList.toggle('is-off', !input.checked)));
+  grid.querySelectorAll('[data-day]:not(:checked)').forEach(input => input.closest('.schedule-row').classList.add('is-off'));
+}
+
+function saveSchedule() {
+  const rows = [...document.querySelectorAll('.schedule-row')];
+  const invalid = rows.find(row => row.querySelector('[data-day]').checked && row.querySelector('[data-time-from]').value >= row.querySelector('[data-time-to]').value);
+  if (invalid) {
+    alert(`Проверьте время: ${invalid.querySelector('[data-day]').dataset.day}. Время окончания должно быть позже начала.`);
+    return;
+  }
+  const parts = rows.map(row => {
+    const day = row.querySelector('[data-day]');
+    if (!day.checked) return `${day.dataset.day} — выходной`;
+    return `${day.dataset.day} ${row.querySelector('[data-time-from]').value}–${row.querySelector('[data-time-to]').value}`;
+  });
+  form.elements.schedule.value = parts.join('; ');
+  document.querySelector('[data-schedule-value]').textContent = parts.join(' · ');
+  saveDraft();
+  scheduleDialog.close();
+}
+
+const aiFields = new Set(['headline', 'about', 'advantages', 'profession', 'sourceNotes', 'requestComment', 'workplace', 'audience', 'masterServices', 'courses', 'reviews']);
+function attachAiHelpers() {
+  aiFields.forEach(name => {
+    const field = form.elements[name];
+    if (!field || field instanceof RadioNodeList) return;
+    const label = field.closest('label');
+    if (!label) return;
+    label.classList.add('has-ai');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'ai-assist';
+    button.dataset.aiFor = name;
+    button.innerHTML = '<span>✦</span> Заполнить с ИИ';
+    label.insertBefore(button, field);
   });
 }
 
@@ -223,6 +304,16 @@ launchInputs.forEach(input => input.addEventListener('change', updateDetailsMode
 paymentInputs.forEach(input => input.addEventListener('change', updateRoleFields));
 form.addEventListener('input', saveDraft);
 form.addEventListener('change', saveDraft);
+form.elements.portfolioPhotos?.addEventListener('change', event => {
+  const count = event.currentTarget.files.length;
+  const note = document.querySelector('[data-gallery-count]');
+  if (count > 10) {
+    event.currentTarget.value = '';
+    note.textContent = 'Можно выбрать не более 10 фотографий.';
+    return;
+  }
+  note.textContent = count ? `Выбрано фотографий: ${count} из 10` : 'До 10 фотографий. Они автоматически оптимизируются перед предпросмотром.';
+});
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
@@ -234,9 +325,10 @@ form.addEventListener('submit', async event => {
       localStorage.setItem('seeuManagerRequest', JSON.stringify(request));
       showResult(true, request);
     } else {
-      uploadedPhoto = await readPhoto();
+      await readPhotos();
       const data = collectExtendedData();
-      localStorage.setItem('seeuGeneratedSite', JSON.stringify(data));
+      try { localStorage.setItem('seeuGeneratedSite', JSON.stringify(data)); }
+      catch (_) { throw new Error('Фотографии получились слишком большими для предпросмотра. Выберите меньше изображений.'); }
       showResult(false, data);
     }
   } catch (error) {
@@ -246,10 +338,25 @@ form.addEventListener('submit', async event => {
 
 document.addEventListener('click', event => {
   if (event.target.closest('[data-close-result]')) resultDialog.close();
+  if (event.target.closest('[data-schedule-open]')) scheduleDialog.showModal();
+  if (event.target.closest('[data-schedule-close]')) scheduleDialog.close();
+  if (event.target.closest('[data-schedule-save]')) saveSchedule();
+  if (event.target.closest('[data-ai-close]')) aiDialog.close();
+  const aiButton = event.target.closest('[data-ai-for]');
+  if (aiButton) {
+    const field = form.elements[aiButton.dataset.aiFor];
+    const label = field.closest('label')?.querySelector(':scope > span')?.textContent || 'Текст';
+    document.querySelector('[data-ai-label]').textContent = label.replace('*', '').trim();
+    document.querySelector('[data-ai-prompt]').value = field.value ? `Улучши этот текст: ${field.value}` : '';
+    aiDialog.showModal();
+  }
 });
 resultDialog.addEventListener('click', event => { if (event.target === resultDialog) resultDialog.close(); });
 
 restoreDraft();
+initSchedule();
+attachAiHelpers();
+if (text('schedule')) document.querySelector('[data-schedule-value]').textContent = text('schedule');
 const params = new URLSearchParams(location.search);
 const requestedRole = params.get('role');
 const requestedPayment = params.get('payment');
