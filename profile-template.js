@@ -4,6 +4,7 @@ const fallback = {
   phone: '+7 999 000-00-00', messenger: '', social: '', bookingLink: '', appBookingLink: '', requestTelegram: '', requestWhatsApp: '', requestEmail: '', address: 'Центр Самары', schedule: 'Пн–Сб, 10:00–20:00', theme: 'coral', customColor: '#A779DC', photo: '', experience: '6 лет', workplace: 'Студия в центре города', bookingMode: 'app',
   ownerLegalStatus: '', ownerLegalName: '', ownerInn: '', ownerOgrn: '', ownerAddress: '', ownerEmail: '', ownerPhone: '', ownerServiceDescription: 'Информационно-консультационные услуги и предоставление доступа к информационным материалам', ownerSettlementAccount: '', ownerBankName: '', ownerBik: '', ownerCorrespondentAccount: '', acquiring: '', onlineDataMode: 'ecosystem',
   advantages: ['Бережная работа', 'Цена известна заранее', 'Удобная запись'], gallery: [], reviews: [], reviewImages: [],
+  customBlocks: [],
   items: [{name:'Маникюр с покрытием',price:'2 300 ₽',meta:'2 часа'},{name:'Снятие и маникюр',price:'1 400 ₽',meta:'1,5 часа'},{name:'Укрепление ногтей',price:'700 ₽',meta:'30 минут'}]
 };
 
@@ -242,6 +243,44 @@ if (independentOperator) {
   setText('[data-legal-scope]', 'Запись и обработка данных выполняются внутри экосистемы SeeU по единому комплекту документов платформы.');
 }
 document.querySelector('[data-refund-rule]').hidden = !onlinePending;
+
+const allowedCustomSlots = new Set(['after-hero', 'after-catalog', 'before-about', 'after-about', 'before-contact', 'before-legal']);
+const allowedCustomLayouts = new Set(['container', 'wide', 'full']);
+
+function safeBlockFragment(html) {
+  const template = document.createElement('template');
+  template.innerHTML = String(html || '');
+  template.content.querySelectorAll('script,iframe,object,embed,base,meta,link').forEach(node => node.remove());
+  template.content.querySelectorAll('*').forEach(node => {
+    [...node.attributes].forEach(attribute => {
+      const name = attribute.name.toLowerCase();
+      const value = attribute.value.trim().toLowerCase();
+      if (name.startsWith('on') || name === 'action' || name === 'formaction' || ((name === 'href' || name === 'src') && value.startsWith('javascript:'))) node.removeAttribute(attribute.name);
+    });
+  });
+  return template.content;
+}
+
+function renderCustomBlocks() {
+  const blocks = Array.isArray(data.customBlocks) ? data.customBlocks : [];
+  blocks.filter(block => block && block.enabled !== false && allowedCustomSlots.has(block.slot)).sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)).forEach((block, index) => {
+    const slot = document.querySelector(`[data-custom-slot="${block.slot}"]`);
+    if (!slot) return;
+    const wrapper = document.createElement('section');
+    const id = String(block.id || `block-${index + 1}`).replace(/[^a-zA-Z0-9_-]/g, '-');
+    const layout = allowedCustomLayouts.has(block.layout) ? block.layout : 'container';
+    wrapper.id = `custom-${id}`;
+    wrapper.className = `profile-custom-block profile-custom-block--${layout}`;
+    wrapper.dataset.customBlockId = id;
+    const body = document.createElement('div');
+    body.className = layout === 'container' ? 'profile-container profile-custom-block__inner' : 'profile-custom-block__inner';
+    body.append(safeBlockFragment(block.html));
+    wrapper.append(body);
+    slot.append(wrapper);
+  });
+}
+
+renderCustomBlocks();
 
 document.querySelector('[data-copy-link]').addEventListener('click', async event => {
   const futureUrl = `https://see-u.app/${data.slug || 'your-name'}`;
