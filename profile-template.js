@@ -2,7 +2,7 @@ const fallback = {
   role: 'master', paymentMode: 'services', displayName: 'Анна Волкова', profession: 'Мастер маникюра', city: 'Самара', slug: 'anna-volkova',
   headline: 'Маникюр, к которому хочется возвращаться', about: 'Я создаю аккуратный и ноский маникюр, внимательно отношусь к пожеланиям и всегда заранее объясняю стоимость и этапы работы.',
   phone: '+7 999 000-00-00', messenger: '', social: '', bookingLink: '', appBookingLink: '', requestTelegram: '', requestWhatsApp: '', requestEmail: '', address: 'Центр Самары', schedule: 'Пн–Сб, 10:00–20:00', theme: 'coral', customColor: '#A779DC', photo: '', experience: '6 лет', workplace: 'Студия в центре города', bookingMode: 'app',
-  ownerLegalStatus: '', ownerLegalName: '', ownerInn: '', ownerOgrn: '', ownerAddress: '', ownerEmail: '', ownerPhone: '', ownerSettlementAccount: '', ownerBankName: '', ownerBik: '', ownerCorrespondentAccount: '', acquiring: '', onlineDataMode: 'ecosystem',
+  ownerLegalStatus: '', ownerLegalName: '', ownerInn: '', ownerOgrn: '', ownerAddress: '', ownerEmail: '', ownerPhone: '', ownerServiceDescription: 'Информационно-консультационные услуги и предоставление доступа к информационным материалам', ownerSettlementAccount: '', ownerBankName: '', ownerBik: '', ownerCorrespondentAccount: '', acquiring: '', onlineDataMode: 'ecosystem',
   advantages: ['Бережная работа', 'Цена известна заранее', 'Удобная запись'], gallery: [], reviews: [], reviewImages: [],
   items: [{name:'Маникюр с покрытием',price:'2 300 ₽',meta:'2 часа'},{name:'Снятие и маникюр',price:'1 400 ₽',meta:'1,5 часа'},{name:'Укрепление ногтей',price:'700 ₽',meta:'30 минут'}]
 };
@@ -195,26 +195,29 @@ if (!instructor && data.bookingMode === 'request') {
 const independentOperator = instructor || (!instructor && data.bookingMode === 'request');
 const ecosystemPayment = onlinePending && data.onlineDataMode !== 'own';
 const baseLegalDocs = onlinePending ? [
-  ['Публичная оферта платформы', 'SeeU'],
-  ['Политика конфиденциальности', 'SeeU'],
-  ['Согласие на обработку и передачу данных', 'SeeU → специалист'],
-  ['Политика cookies', 'SeeU'],
-  ['Договор оказания услуг', 'Специалист'],
-  ['Политика оплаты, отказа и возврата', 'Специалист'],
-  ['Отдельные согласия на рекламу', 'SeeU / специалист']
+  ['Публичная оферта платформы', 'SeeU', 'обязательно'],
+  ['Политика конфиденциальности', 'SeeU', 'обязательно'],
+  ['Согласие на обработку и передачу данных', 'SeeU → специалист', 'отдельное обязательное согласие'],
+  ['Политика cookies', 'SeeU', 'обязательно на сайте'],
+  ['Публичная оферта на информационно-консультационные услуги', 'Специалист', 'обязательно перед оплатой'],
+  ['Политика оплаты, отказа и возврата', 'Специалист', 'обязательно перед оплатой'],
+  ['Согласие на рекламу SeeU', 'SeeU', 'отдельно · добровольно'],
+  ['Согласие на рекламу специалиста', 'Специалист', 'отдельно · добровольно']
 ] : [
-  ['Пользовательское соглашение', 'SeeU'],
-  ['Политика обработки персональных данных', independentOperator ? 'SeeU + специалист' : 'SeeU'],
-  ['Согласие на обработку и передачу данных', independentOperator ? 'SeeU → специалист' : 'SeeU'],
-  ['Политика cookies', 'SeeU'],
-  ['Публичная оферта и условия сервиса', 'SeeU']
+  ['Пользовательское соглашение', 'SeeU', 'обязательно'],
+  ['Политика обработки персональных данных', independentOperator ? 'SeeU + специалист' : 'SeeU', 'обязательно'],
+  ['Согласие на обработку и передачу данных', independentOperator ? 'SeeU → специалист' : 'SeeU', 'отдельное обязательное согласие'],
+  ['Политика cookies', 'SeeU', 'обязательно на сайте'],
+  ['Публичная оферта и условия сервиса', 'SeeU', 'обязательно'],
+  ['Согласие на рекламу SeeU', 'SeeU', 'отдельно · добровольно'],
+  ['Согласие на рекламу специалиста', 'Специалист', 'отдельно · добровольно']
 ];
 const legalDocs = document.querySelector('[data-legal-docs]');
-baseLegalDocs.forEach(([title, party], index) => {
+baseLegalDocs.forEach(([title, party, status], index) => {
   const item = document.createElement('button');
   item.type = 'button';
   item.disabled = true;
-  item.innerHTML = `<span>${String(index + 1).padStart(2, '0')}</span><strong>${title}</strong><small>сторона: ${party}</small>`;
+  item.innerHTML = `<span>${String(index + 1).padStart(2, '0')}</span><strong>${title}</strong><small>${status} · сторона: ${party}</small>`;
   legalDocs.append(item);
 });
 
@@ -223,7 +226,7 @@ if (independentOperator) {
   operator.hidden = false;
   setText('[data-legal-operator-label]', onlinePending ? 'Две стороны — отдельные зоны ответственности' : 'Самостоятельный оператор после передачи заявки');
   setText('[data-legal-name]', onlinePending ? `SeeU + ${data.ownerLegalName || data.displayName}` : data.ownerLegalName || data.displayName);
-  const details = [data.ownerLegalStatus, data.ownerInn && `ИНН ${data.ownerInn}`, data.ownerOgrn && `ОГРН/ОГРНИП ${data.ownerOgrn}`, data.ownerAddress, data.ownerEmail, data.ownerSettlementAccount && `р/с ${data.ownerSettlementAccount}`, data.ownerBankName, data.ownerBik && `БИК ${data.ownerBik}`, data.ownerCorrespondentAccount && `к/с ${data.ownerCorrespondentAccount}`].filter(Boolean);
+  const details = [data.ownerLegalStatus, data.ownerServiceDescription, data.ownerInn && `ИНН ${data.ownerInn}`, data.ownerOgrn && `ОГРН/ОГРНИП ${data.ownerOgrn}`, data.ownerAddress, data.ownerEmail, data.ownerSettlementAccount && `р/с ${data.ownerSettlementAccount}`, data.ownerBankName, data.ownerBik && `БИК ${data.ownerBik}`, data.ownerCorrespondentAccount && `к/с ${data.ownerCorrespondentAccount}`].filter(Boolean);
   const scopes = onlinePending
     ? ecosystemPayment
       ? 'SeeU — платформа, хранение базы, доступы и техническая обработка. Специалист — продавец, эквайринг, обучение, возвраты и исполнение обязательств.'
@@ -238,6 +241,7 @@ if (independentOperator) {
 } else {
   setText('[data-legal-scope]', 'Запись и обработка данных выполняются внутри экосистемы SeeU по единому комплекту документов платформы.');
 }
+document.querySelector('[data-refund-rule]').hidden = !onlinePending;
 
 document.querySelector('[data-copy-link]').addEventListener('click', async event => {
   const futureUrl = `https://see-u.app/${data.slug || 'your-name'}`;
