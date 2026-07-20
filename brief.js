@@ -56,6 +56,15 @@ function updateRoleFields() {
   document.querySelector('[data-payment-connection]').hidden = !(instructor && checked('paymentMode') === 'online');
 }
 
+function updateThemeFields() {
+  document.querySelector('[data-custom-theme]').hidden = checked('theme') !== 'custom';
+}
+
+function customColorValue() {
+  const hex = text('customColorHex');
+  return /^#[0-9a-f]{6}$/i.test(hex) ? hex.toUpperCase() : value('customColor') || '#A779DC';
+}
+
 function updateDetailsMode() {
   const short = checked('launchMode') === 'manager';
   document.querySelector('[data-short-brief]').hidden = !short;
@@ -213,6 +222,7 @@ function collectExtendedData() {
     address: text('address'),
     schedule: text('schedule'),
     theme: checked('theme') || 'coral',
+    customColor: customColorValue(),
     photo: uploadedPhoto,
     advantages: parseLines(text('advantages')),
     gallery: uploadedGallery,
@@ -384,6 +394,15 @@ prevButton.addEventListener('click', () => setStep(currentStep - 1));
 roleInputs.forEach(input => input.addEventListener('change', updateRoleFields));
 launchInputs.forEach(input => input.addEventListener('change', updateDetailsMode));
 paymentInputs.forEach(input => input.addEventListener('change', updateRoleFields));
+form.querySelectorAll('[name="theme"]').forEach(input => input.addEventListener('change', updateThemeFields));
+form.elements.customColor?.addEventListener('input', event => {
+  form.elements.customColorHex.value = event.currentTarget.value.toUpperCase();
+  saveDraft();
+});
+form.elements.customColorHex?.addEventListener('input', event => {
+  const color = event.currentTarget.value.trim();
+  if (/^#[0-9a-f]{6}$/i.test(color)) form.elements.customColor.value = color;
+});
 form.addEventListener('input', saveDraft);
 form.addEventListener('change', saveDraft);
 form.elements.portfolioPhotos?.addEventListener('change', event => {
@@ -494,4 +513,5 @@ if (params.get('manager') === '1') {
 }
 updateDetailsMode();
 updateRoleFields();
+updateThemeFields();
 setStep(1, false);
