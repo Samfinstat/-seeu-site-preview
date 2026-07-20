@@ -6,6 +6,7 @@ const submitButton = document.querySelector('[data-submit]');
 const roleInputs = [...form.querySelectorAll('[name="role"]')];
 const launchInputs = [...form.querySelectorAll('[name="launchMode"]')];
 const paymentInputs = [...form.querySelectorAll('[name="paymentMode"]')];
+const onlineDataInputs = [...form.querySelectorAll('[name="onlineDataMode"]')];
 const bookingInputs = [...form.querySelectorAll('[name="bookingMode"]')];
 const resultDialog = document.querySelector('#brief-result');
 const scheduleDialog = document.querySelector('#schedule-dialog');
@@ -74,18 +75,25 @@ function updateBookingFields() {
 function updateLegalFields() {
   const instructor = checked('role') === 'instructor';
   const online = instructor && checked('paymentMode') === 'online';
+  const ecosystemData = online && checked('onlineDataMode') !== 'own';
   const independentOperator = instructor || (!instructor && checked('bookingMode') === 'request');
   const panel = document.querySelector('[data-owner-legal]');
   panel.hidden = !independentOperator;
   document.querySelector('[data-owner-legal-title]').textContent = online ? 'Данные продавца и получателя оплаты' : 'Данные самостоятельного оператора';
   document.querySelector('[data-owner-legal-note]').textContent = online
-    ? 'Эти сведения и реквизиты продавца будут подставлены в единый комплект документов страницы.'
+    ? 'Эти сведения и банковские реквизиты будут подставлены в документы специалиста наряду с документами SeeU.'
     : 'Эти сведения будут подставлены в единый комплект документов страницы.';
   document.querySelector('[data-legal-package-note]').textContent = online
-    ? 'Состав документов остаётся единым: внутри добавляются специалист как продавец и оператор, его реквизиты и условия приёма оплаты.'
+    ? ecosystemData
+      ? 'SeeU отвечает за платформу, хранение базы и доступы. Специалист отвечает за продажу курса, оплату, оказание услуги и возвраты. Обе стороны указываются в документах со своими реквизитами.'
+      : 'SeeU отвечает за первичный сбор и передачу заявки. Специалист отвечает за собственную базу, продажу курса, оплату, оказание услуги и возвраты.'
     : 'В документах будет отмечено, что после передачи заявки специалист самостоятельно обрабатывает клиентскую базу.';
+  document.querySelector('[data-seller-bank-fields]').hidden = !online;
   ['ownerLegalStatus', 'ownerLegalName', 'ownerInn', 'ownerAddress', 'ownerEmail'].forEach(name => {
     form.elements[name].required = independentOperator;
+  });
+  ['ownerSettlementAccount', 'ownerBankName', 'ownerBik', 'ownerCorrespondentAccount'].forEach(name => {
+    form.elements[name].required = online;
   });
 }
 
@@ -139,8 +147,9 @@ function renderSummary() {
   cards.push(summaryCard('Сценарий', manager ? 'Создание менеджером' : 'Автоматическое создание', manager ? 'Менеджер заполнит расширенный бриф по вашим источникам.' : 'После отправки откроется готовый персональный шаблон.'));
   cards.push(summaryCard('Тип страницы', instructor ? 'Инструктор или эксперт' : 'Мастер или специалист', instructor ? 'Страница обучения, курсов и набора учеников.' : 'Страница услуг, цен и записи клиентов.'));
   if (instructor) cards.push(summaryCard('Оплата', online ? 'Нужно подключить эквайринг' : 'Без онлайн-оплаты', online ? 'Страница сразу собирает заявки, а менеджеру ставится задача на эквайринг.' : 'Страница сразу работает как витрина и форма заявки.'));
+  if (online) cards.push(summaryCard('База учеников', checked('onlineDataMode') === 'own' ? 'В каналах специалиста' : 'В экосистеме SeeU', checked('onlineDataMode') === 'own' ? 'После передачи данных специалист самостоятельно ведёт клиентскую базу.' : 'SeeU хранит базу, управляет доступами и поддерживает обучение.'));
   if (!instructor) cards.push(summaryCard('Запись', checked('bookingMode') === 'app' ? 'Внутри SeeU' : 'Заявка в ваши каналы', checked('bookingMode') === 'app' ? 'Данные и запись остаются внутри экосистемы SeeU.' : 'После передачи заявки вы самостоятельно обрабатываете клиентскую базу.'));
-  if (!manager && (instructor || checked('bookingMode') === 'request')) cards.push(summaryCard('Документы', 'Единый комплект SeeU', online ? 'В тех же документах будут добавлены специалист как продавец и его реквизиты.' : 'В документах будет явно указано, кто обрабатывает данные после передачи заявки.'));
+  if (!manager && (instructor || checked('bookingMode') === 'request')) cards.push(summaryCard('Документы', online ? 'Документы двух сторон' : 'Единый комплект SeeU', online ? 'Документы SeeU и специалиста показываются вместе, но права и ответственность каждой стороны разграничены.' : 'В документах будет явно указано, кто обрабатывает данные после передачи заявки.'));
   cards.push(summaryCard('Следующий шаг', manager ? 'Заявка менеджеру' : 'Предпросмотр страницы', manager ? 'На боевом сайте заявка создаст процесс в Битрикс24.' : 'Вы увидите результат и сможете вернуться к редактированию.'));
   document.querySelector('[data-summary]').innerHTML = cards.join('');
 }
@@ -247,6 +256,7 @@ function collectExtendedData() {
     createdAt: new Date().toISOString(),
     role: instructor ? 'instructor' : 'master',
     paymentMode,
+    onlineDataMode: onlineDataInputs.length ? checked('onlineDataMode') || 'ecosystem' : 'ecosystem',
     displayName,
     profession: text('profession'),
     city: text('city'),
@@ -282,6 +292,10 @@ function collectExtendedData() {
     ownerAddress: text('ownerAddress'),
     ownerEmail: text('ownerEmail'),
     ownerPhone: text('ownerPhone'),
+    ownerSettlementAccount: text('ownerSettlementAccount'),
+    ownerBankName: text('ownerBankName'),
+    ownerBik: text('ownerBik'),
+    ownerCorrespondentAccount: text('ownerCorrespondentAccount'),
     acquiring: text('acquiring'),
     items: instructor ? parseItems(text('courses')) : collectServices(),
     paymentConnectionRequired: instructor && paymentMode === 'online'
@@ -442,6 +456,7 @@ prevButton.addEventListener('click', () => setStep(currentStep - 1));
 roleInputs.forEach(input => input.addEventListener('change', updateRoleFields));
 launchInputs.forEach(input => input.addEventListener('change', updateDetailsMode));
 paymentInputs.forEach(input => input.addEventListener('change', updateRoleFields));
+onlineDataInputs.forEach(input => input.addEventListener('change', updateLegalFields));
 bookingInputs.forEach(input => input.addEventListener('change', updateBookingFields));
 form.querySelectorAll('[name="theme"]').forEach(input => input.addEventListener('change', updateThemeFields));
 form.elements.customColor?.addEventListener('input', event => {
