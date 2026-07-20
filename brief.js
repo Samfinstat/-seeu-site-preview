@@ -55,6 +55,7 @@ function updateRoleFields() {
   document.querySelector('[data-master-fields]').hidden = instructor;
   document.querySelector('[data-instructor-fields]').hidden = !instructor;
   document.querySelector('[data-payment-connection]').hidden = !(instructor && checked('paymentMode') === 'online');
+  updateLegalFields();
 }
 
 function updateThemeFields() {
@@ -65,10 +66,25 @@ function updateBookingFields() {
   const mode = checked('bookingMode') || 'app';
   document.querySelector('[data-booking-app]').hidden = mode !== 'app';
   document.querySelector('[data-booking-request]').hidden = mode !== 'request';
-  document.querySelector('[data-booking-external]').hidden = mode !== 'external';
   form.elements.appBookingLink.required = mode === 'app';
-  form.elements.externalBookingLink.required = mode === 'external';
   document.querySelector('[data-booking-error]').hidden = true;
+  updateLegalFields();
+}
+
+function updateLegalFields() {
+  const instructor = checked('role') === 'instructor';
+  const online = instructor && checked('paymentMode') === 'online';
+  const independentOperator = instructor || (!instructor && checked('bookingMode') === 'request');
+  const panel = document.querySelector('[data-owner-legal]');
+  panel.hidden = !independentOperator;
+  document.querySelector('[data-owner-legal-title]').textContent = online ? 'Данные продавца и получателя оплаты' : 'Данные самостоятельного оператора';
+  document.querySelector('[data-owner-legal-note]').textContent = online
+    ? 'По этим данным сформируются реквизиты, оферта продавца и документы по обработке данных.'
+    : 'Эти сведения попадут в дополнительное согласие и документы на странице.';
+  document.querySelector('[data-seller-docs]').hidden = !online;
+  ['ownerLegalStatus', 'ownerLegalName', 'ownerInn', 'ownerAddress', 'ownerEmail'].forEach(name => {
+    form.elements[name].required = independentOperator;
+  });
 }
 
 function customColorValue() {
@@ -121,6 +137,8 @@ function renderSummary() {
   cards.push(summaryCard('Сценарий', manager ? 'Создание менеджером' : 'Автоматическое создание', manager ? 'Менеджер заполнит расширенный бриф по вашим источникам.' : 'После отправки откроется готовый персональный шаблон.'));
   cards.push(summaryCard('Тип страницы', instructor ? 'Инструктор или эксперт' : 'Мастер или специалист', instructor ? 'Страница обучения, курсов и набора учеников.' : 'Страница услуг, цен и записи клиентов.'));
   if (instructor) cards.push(summaryCard('Оплата', online ? 'Нужно подключить эквайринг' : 'Без онлайн-оплаты', online ? 'Страница сразу собирает заявки, а менеджеру ставится задача на эквайринг.' : 'Страница сразу работает как витрина и форма заявки.'));
+  if (!instructor) cards.push(summaryCard('Запись', checked('bookingMode') === 'app' ? 'Внутри SeeU' : 'Заявка в ваши каналы', checked('bookingMode') === 'app' ? 'Данные и запись остаются внутри экосистемы SeeU.' : 'После передачи заявки вы самостоятельно обрабатываете клиентскую базу.'));
+  if (!manager && (instructor || checked('bookingMode') === 'request')) cards.push(summaryCard('Документы', online ? 'SeeU + документы продавца' : 'SeeU + данные оператора', online ? 'На странице будут отдельные документы платформы и продавца курса.' : 'На странице будет явно указано, кто обрабатывает данные после передачи заявки.'));
   cards.push(summaryCard('Следующий шаг', manager ? 'Заявка менеджеру' : 'Предпросмотр страницы', manager ? 'На боевом сайте заявка создаст процесс в Битрикс24.' : 'Вы увидите результат и сможете вернуться к редактированию.'));
   document.querySelector('[data-summary]').innerHTML = cards.join('');
 }
@@ -241,7 +259,6 @@ function collectExtendedData() {
     requestTelegram: text('requestTelegram'),
     requestWhatsApp: text('requestWhatsApp'),
     requestEmail: text('requestEmail'),
-    externalBookingLink: text('externalBookingLink'),
     address: text('address'),
     schedule: text('schedule'),
     theme: checked('theme') || 'coral',
@@ -256,7 +273,13 @@ function collectExtendedData() {
     bookingMode: checked('bookingMode') || 'app',
     audience: text('audience'),
     courseFormat: value('courseFormat'),
-    legalStatus: value('legalStatus'),
+    ownerLegalStatus: value('ownerLegalStatus'),
+    ownerLegalName: text('ownerLegalName'),
+    ownerInn: text('ownerInn'),
+    ownerOgrn: text('ownerOgrn'),
+    ownerAddress: text('ownerAddress'),
+    ownerEmail: text('ownerEmail'),
+    ownerPhone: text('ownerPhone'),
     acquiring: text('acquiring'),
     items: instructor ? parseItems(text('courses')) : collectServices(),
     paymentConnectionRequired: instructor && paymentMode === 'online'
