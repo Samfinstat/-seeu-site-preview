@@ -1,7 +1,7 @@
 const fallback = {
   role: 'master', paymentMode: 'services', displayName: 'Анна Волкова', profession: 'Мастер маникюра', city: 'Самара', slug: 'anna-volkova',
   headline: 'Маникюр, к которому хочется возвращаться', about: 'Я создаю аккуратный и ноский маникюр, внимательно отношусь к пожеланиям и всегда заранее объясняю стоимость и этапы работы.',
-  phone: '+7 999 000-00-00', messenger: '', social: '', bookingLink: '', address: 'Центр Самары', schedule: 'Пн–Сб, 10:00–20:00', theme: 'coral', photo: '', experience: '6 лет', workplace: 'Студия в центре города', bookingMode: 'app',
+  phone: '+7 999 000-00-00', messenger: '', social: '', bookingLink: '', address: 'Центр Самары', schedule: 'Пн–Сб, 10:00–20:00', theme: 'coral', customColor: '#A779DC', photo: '', experience: '6 лет', workplace: 'Студия в центре города', bookingMode: 'app',
   advantages: ['Бережная работа', 'Цена известна заранее', 'Удобная запись'], gallery: [], reviews: [], reviewImages: [],
   items: [{name:'Маникюр с покрытием',price:'2 300 ₽',meta:'2 часа'},{name:'Снятие и маникюр',price:'1 400 ₽',meta:'1,5 часа'},{name:'Укрепление ногтей',price:'700 ₽',meta:'30 минут'}]
 };
@@ -12,7 +12,23 @@ const instructor = data.role === 'instructor';
 const onlinePending = instructor && data.paymentMode === 'online';
 const setText = (selector, content) => document.querySelectorAll(selector).forEach(node => node.textContent = content);
 
+function customPalette(hex) {
+  const value = /^#[0-9a-f]{6}$/i.test(hex || '') ? hex : '#A779DC';
+  const number = parseInt(value.slice(1), 16);
+  const rgb = [number >> 16, (number >> 8) & 255, number & 255];
+  const second = rgb.map((channel, index) => Math.round(channel * .62 + [255, 176, 104][index] * .38));
+  const soft = rgb.map(channel => Math.round(channel * .12 + 255 * .88));
+  const toHex = channels => `#${channels.map(channel => channel.toString(16).padStart(2, '0')).join('')}`;
+  return { accent: value, second: toHex(second), soft: toHex(soft) };
+}
+
 document.body.dataset.theme = data.theme || 'coral';
+if (data.theme === 'custom') {
+  const palette = customPalette(data.customColor);
+  document.body.style.setProperty('--accent', palette.accent);
+  document.body.style.setProperty('--accent-2', palette.second);
+  document.body.style.setProperty('--accent-soft', palette.soft);
+}
 document.title = `${data.displayName} — ${data.profession}`;
 setText('[data-name], [data-footer-name]', data.displayName);
 setText('[data-footer-profession]', data.profession);
