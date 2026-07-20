@@ -643,3 +643,35 @@
   .work-scene { min-height: 500px; }
   .work-scene-content { padding: 24px 20px; }
 }
+
+/* Range labels follow their real numeric positions instead of equal columns */
+.referral-range-labels {
+  position: relative;
+  display: block;
+  height: 18px;
+}
+
+.referral-range-labels span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.referral-range-labels span:nth-child(1) { left: 0; transform: none; }
+.referral-range-labels span:nth-child(2) { left: 10%; }
+.referral-range-labels span:nth-child(3) { left: 20%; }
+.referral-range-labels span:nth-child(4) { left: 50%; }
+.referral-range-labels span:nth-child(5) { right: 0; transform: none; }
+
+@media (max-width: 720px) {
+  .product-page .sales-visual .sales-float-one {
+    top: 4%;
+    right: auto;
+    left: 4%;
+    max-width: 210px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-page .sales-visual .sales-float-one { max-width: 168px; }
+}
