@@ -656,3 +656,40 @@ body { overflow-x: hidden; }
   .trust-number strong { font-size: 88px; }
   .trust-photos img { height: 120px; }
 }
+
+/* Keep interface cards away from people in lifestyle photography */
+.trust-photos img:nth-child(1) { object-position: 42% 25%; }
+.trust-photos img:nth-child(2) { object-position: 50% 22%; }
+.trust-photos img:nth-child(3) { object-position: 55% 26%; }
+
+@media (max-width: 720px) {
+  .hero-visual { min-height: 400px; }
+  .hero-visual .speed-badge {
+    top: 4%;
+    right: auto;
+    left: 4%;
+  }
+  .hero-visual .browser-card {
+    bottom: 4%;
+    left: 4%;
+    width: 68%;
+    padding: 13px;
+  }
+  .hero-visual .browser-card .profile-line { display: none; }
+  .hero-visual .browser-card .service-row:not(.selected) { display: none; }
+  .hero-visual .browser-card .browser-dots { margin-bottom: 8px; }
+  .hero-visual .browser-card .mini-title { margin: 7px 0 4px; }
+  .hero-visual .seo-badge {
+    right: 3%;
+    bottom: 4%;
+  }
+  .why-photo { min-height: 390px; }
+}
+
+@media (max-width: 480px) {
+  .hero-visual { min-height: 360px; }
+  .hero-visual .browser-card { width: 70%; }
+  .hero-visual .browser-card .mock-button { padding: 8px 10px; }
+  .why-photo { min-height: 350px; }
+  .trust-photos img { object-position: center 25%; }
+}
