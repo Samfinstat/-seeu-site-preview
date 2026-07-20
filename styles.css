@@ -3,3 +3,26 @@
 @media(max-width:1040px){.main-nav{display:none}.menu-toggle{display:block}.main-nav.is-open{position:absolute;display:flex;flex-direction:column;right:24px;top:76px;padding:20px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow)}.hero-grid{grid-template-columns:1fr}.hero-visual{min-height:540px}.cards-3,.proof-grid,.trust-grid{grid-template-columns:1fr 1fr}.solution-grid .solution-card:last-child,.pricing-grid .price-card:last-child{grid-column:1/-1}.footer-grid{grid-template-columns:1.4fr 1fr 1fr}.footer-grid>div:last-child{grid-column:2}.faq-wrap{grid-template-columns:1fr;gap:36px}.real-links{grid-template-columns:1fr 1fr}}
 @media(max-width:720px){.container{width:min(100% - 32px,1248px)}.header-inner{height:72px}.brand img{width:42px;height:42px}.header-cta{display:none}.hero{padding:44px 0}.hero-copy h1{font-size:42px}.lead{font-size:17px}.hero-visual{min-height:450px}.browser-card{left:5%;width:87%;padding:18px}.speed-badge{right:3%}.seo-badge{right:3%;bottom:4%}.proof-grid,.cards-3,.launch-shortcuts,.ecosystem-grid,.launch-grid,.trust-grid,.pricing-grid,.footer-grid{grid-template-columns:1fr}.proof-grid{gap:16px}.proof-grid p{justify-content:space-between}.section{padding:74px 0 80px}.section-heading h2,.faq-heading h2,.final-cta h2{font-size:38px}.solution-grid .solution-card:last-child,.pricing-grid .price-card:last-child,.marking-card{grid-column:auto}.course-card{grid-row:auto}.heading-row,.final-cta-inner,.referral-callout{align-items:flex-start;flex-direction:column}.examples-grid{grid-template-columns:1fr}.real-links{grid-template-columns:1fr}.footer-grid>div:last-child{grid-column:auto}.legal-line{flex-direction:column}.dialog-options{grid-template-columns:1fr}.button-row .button{width:100%}.time-slots{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.hero-copy h1{font-size:36px}.hero-visual{min-height:420px}.profile-line strong{font-size:13px}.profile-line span,.service-row{font-size:10px}.browser-card{top:10%}.speed-badge{font-size:12px}.seo-badge{font-size:10px}.section-heading h2,.faq-heading h2,.final-cta h2{font-size:34px}.button{width:100%}.footer-grid{gap:28px}}
+
+/* Consistent vertical rhythm across all landing pages */
+.section { padding-block: 82px 88px; }
+.final-cta { padding-block: 68px; }
+
+@media (max-width: 1040px) {
+  .section { padding-block: 68px 74px; }
+  .hero { padding-block: 52px 58px; }
+}
+
+@media (max-width: 720px) {
+  .section { padding-block: 52px 58px; }
+  .section-heading { margin: 22px 0 30px; }
+  .final-cta { padding-block: 52px; }
+  .site-footer { padding: 48px 0 30px; }
+}
+
+@media (max-width: 480px) {
+  .section { padding-block: 44px 50px; }
+  .section-heading { margin: 18px 0 26px; }
+  .hero { padding-block: 34px 42px; }
+  .final-cta { padding-block: 44px; }
+}
