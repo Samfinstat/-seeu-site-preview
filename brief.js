@@ -79,9 +79,11 @@ function updateLegalFields() {
   panel.hidden = !independentOperator;
   document.querySelector('[data-owner-legal-title]').textContent = online ? 'Данные продавца и получателя оплаты' : 'Данные самостоятельного оператора';
   document.querySelector('[data-owner-legal-note]').textContent = online
-    ? 'По этим данным сформируются реквизиты, оферта продавца и документы по обработке данных.'
-    : 'Эти сведения попадут в дополнительное согласие и документы на странице.';
-  document.querySelector('[data-seller-docs]').hidden = !online;
+    ? 'Эти сведения и реквизиты продавца будут подставлены в единый комплект документов страницы.'
+    : 'Эти сведения будут подставлены в единый комплект документов страницы.';
+  document.querySelector('[data-legal-package-note]').textContent = online
+    ? 'Состав документов остаётся единым: внутри добавляются специалист как продавец и оператор, его реквизиты и условия приёма оплаты.'
+    : 'В документах будет отмечено, что после передачи заявки специалист самостоятельно обрабатывает клиентскую базу.';
   ['ownerLegalStatus', 'ownerLegalName', 'ownerInn', 'ownerAddress', 'ownerEmail'].forEach(name => {
     form.elements[name].required = independentOperator;
   });
@@ -138,7 +140,7 @@ function renderSummary() {
   cards.push(summaryCard('Тип страницы', instructor ? 'Инструктор или эксперт' : 'Мастер или специалист', instructor ? 'Страница обучения, курсов и набора учеников.' : 'Страница услуг, цен и записи клиентов.'));
   if (instructor) cards.push(summaryCard('Оплата', online ? 'Нужно подключить эквайринг' : 'Без онлайн-оплаты', online ? 'Страница сразу собирает заявки, а менеджеру ставится задача на эквайринг.' : 'Страница сразу работает как витрина и форма заявки.'));
   if (!instructor) cards.push(summaryCard('Запись', checked('bookingMode') === 'app' ? 'Внутри SeeU' : 'Заявка в ваши каналы', checked('bookingMode') === 'app' ? 'Данные и запись остаются внутри экосистемы SeeU.' : 'После передачи заявки вы самостоятельно обрабатываете клиентскую базу.'));
-  if (!manager && (instructor || checked('bookingMode') === 'request')) cards.push(summaryCard('Документы', online ? 'SeeU + документы продавца' : 'SeeU + данные оператора', online ? 'На странице будут отдельные документы платформы и продавца курса.' : 'На странице будет явно указано, кто обрабатывает данные после передачи заявки.'));
+  if (!manager && (instructor || checked('bookingMode') === 'request')) cards.push(summaryCard('Документы', 'Единый комплект SeeU', online ? 'В тех же документах будут добавлены специалист как продавец и его реквизиты.' : 'В документах будет явно указано, кто обрабатывает данные после передачи заявки.'));
   cards.push(summaryCard('Следующий шаг', manager ? 'Заявка менеджеру' : 'Предпросмотр страницы', manager ? 'На боевом сайте заявка создаст процесс в Битрикс24.' : 'Вы увидите результат и сможете вернуться к редактированию.'));
   document.querySelector('[data-summary]').innerHTML = cards.join('');
 }
