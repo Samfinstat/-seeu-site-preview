@@ -26,3 +26,42 @@
   .hero { padding-block: 34px 42px; }
   .final-cta { padding-block: 44px; }
 }
+
+/* Role-specific benefits on the homepage */
+.solution-card { min-height: 570px; }
+.solution-card > p { margin: 0 0 18px; }
+.solution-benefits {
+  display: grid;
+  gap: 11px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+.solution-benefits li {
+  position: relative;
+  padding-left: 29px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.42;
+}
+.solution-benefits li::before {
+  position: absolute;
+  top: 1px;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #236642;
+  content: "✓";
+  font-size: 10px;
+  font-weight: 900;
+}
+.solution-card--instructor .solution-benefits li::before { background: var(--lilac-soft); color: #7448a7; }
+.solution-card--marking .solution-benefits li::before { background: var(--apricot-soft); color: #9b6422; }
+
+@media (max-width: 720px) {
+  .solution-card { min-height: auto; }
+}
