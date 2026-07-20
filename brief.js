@@ -21,7 +21,7 @@ const stepMeta = [
   ['Проверка', 'Подтвердите сценарий запуска']
 ];
 
-function setStep(number) {
+function setStep(number, shouldScroll = true) {
   currentStep = Math.max(1, Math.min(4, number));
   steps.forEach((step, index) => {
     const active = index === currentStep - 1;
@@ -38,7 +38,7 @@ function setStep(number) {
   submitButton.hidden = currentStep !== 4;
   if (currentStep === 3) updateDetailsMode();
   if (currentStep === 4) renderSummary();
-  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (shouldScroll) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function updateRoleFields() {
@@ -235,6 +235,14 @@ resultDialog.addEventListener('click', event => { if (event.target === resultDia
 
 restoreDraft();
 const params = new URLSearchParams(location.search);
+const requestedRole = params.get('role');
+const requestedPayment = params.get('payment');
+if (requestedRole && form.querySelector(`[name="role"][value="${requestedRole}"]`)) {
+  form.querySelector(`[name="role"][value="${requestedRole}"]`).checked = true;
+}
+if (requestedPayment && form.querySelector(`[name="paymentMode"][value="${requestedPayment}"]`)) {
+  form.querySelector(`[name="paymentMode"][value="${requestedPayment}"]`).checked = true;
+}
 if (params.get('mode') === 'manager') {
   form.querySelector('[name="launchMode"][value="manager"]').checked = true;
 }
@@ -247,4 +255,4 @@ if (params.get('manager') === '1') {
 }
 updateDetailsMode();
 updateRoleFields();
-setStep(1);
+setStep(1, false);
