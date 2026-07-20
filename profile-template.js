@@ -2,7 +2,7 @@ const fallback = {
   role: 'master', paymentMode: 'services', displayName: 'Анна Волкова', profession: 'Мастер маникюра', city: 'Самара', slug: 'anna-volkova',
   headline: 'Маникюр, к которому хочется возвращаться', about: 'Я создаю аккуратный и ноский маникюр, внимательно отношусь к пожеланиям и всегда заранее объясняю стоимость и этапы работы.',
   phone: '+7 999 000-00-00', messenger: '', social: '', bookingLink: '', address: 'Центр Самары', schedule: 'Пн–Сб, 10:00–20:00', theme: 'coral', photo: '', experience: '6 лет', workplace: 'Студия в центре города', bookingMode: 'app',
-  advantages: ['Бережная работа', 'Цена известна заранее', 'Удобная запись'], gallery: [], reviews: [],
+  advantages: ['Бережная работа', 'Цена известна заранее', 'Удобная запись'], gallery: [], reviews: [], reviewImages: [],
   items: [{name:'Маникюр с покрытием',price:'2 300 ₽',meta:'2 часа'},{name:'Снятие и маникюр',price:'1 400 ₽',meta:'1,5 часа'},{name:'Укрепление ногтей',price:'700 ₽',meta:'30 минут'}]
 };
 
@@ -99,7 +99,8 @@ if (gallery.length) {
 }
 
 const reviews = Array.isArray(data.reviews) ? data.reviews.filter(review => review?.text) : [];
-if (reviews.length) {
+const reviewImages = Array.isArray(data.reviewImages) ? data.reviewImages.filter(Boolean) : [];
+if (reviews.length || reviewImages.length) {
   document.querySelector('[data-reviews-section]').hidden = false;
   const reviewsContainer = document.querySelector('[data-reviews]');
   reviews.forEach(review => {
@@ -110,6 +111,16 @@ if (reviews.length) {
     author.textContent = review.author || (instructor ? 'Ученик' : 'Клиент');
     article.append(quote, author);
     reviewsContainer.append(article);
+  });
+  reviewImages.forEach((src, index) => {
+    const figure = document.createElement('figure');
+    figure.className = 'profile-review-shot';
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = `Скриншот отзыва ${index + 1}`;
+    img.loading = 'lazy';
+    figure.append(img);
+    reviewsContainer.append(figure);
   });
 }
 
