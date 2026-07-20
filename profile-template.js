@@ -1,7 +1,8 @@
 const fallback = {
   role: 'master', paymentMode: 'services', displayName: 'Анна Волкова', profession: 'Мастер маникюра', city: 'Самара', slug: 'anna-volkova',
   headline: 'Маникюр, к которому хочется возвращаться', about: 'Я создаю аккуратный и ноский маникюр, внимательно отношусь к пожеланиям и всегда заранее объясняю стоимость и этапы работы.',
-  phone: '+7 999 000-00-00', messenger: '', social: '', bookingLink: '', theme: 'coral', photo: '', experience: '6 лет', workplace: 'Студия в центре города', bookingMode: 'app',
+  phone: '+7 999 000-00-00', messenger: '', social: '', bookingLink: '', address: 'Центр Самары', schedule: 'Пн–Сб, 10:00–20:00', theme: 'coral', photo: '', experience: '6 лет', workplace: 'Студия в центре города', bookingMode: 'app',
+  advantages: ['Бережная работа', 'Цена известна заранее', 'Удобная запись'], gallery: [], reviews: [],
   items: [{name:'Маникюр с покрытием',price:'2 300 ₽',meta:'2 часа'},{name:'Снятие и маникюр',price:'1 400 ₽',meta:'1,5 часа'},{name:'Укрепление ногтей',price:'700 ₽',meta:'30 минут'}]
 };
 
@@ -20,6 +21,15 @@ setText('[data-headline]', data.headline);
 setText('[data-about]', data.about || (instructor ? 'Расскажите о своём опыте, методике и результатах учеников.' : 'Расскажите о своём опыте, подходе и о том, почему клиенты выбирают именно вас.'));
 setText('[data-about-title]', instructor ? 'Передаю практический опыт и помогаю расти в профессии' : 'Работаю внимательно и с заботой о результате');
 setText('[data-role-label]', `${data.profession} · ${data.city}`.toUpperCase());
+
+const values = data.advantages?.length ? data.advantages : fallback.advantages;
+const valuesContainer = document.querySelector('[data-values]');
+valuesContainer.innerHTML = '';
+values.forEach(value => {
+  const item = document.createElement('span');
+  item.textContent = `✓ ${value}`;
+  valuesContainer.append(item);
+});
 
 if (data.photo) document.querySelectorAll('[data-photo], [data-about-photo]').forEach(img => img.src = data.photo);
 else if (instructor) document.querySelectorAll('[data-photo], [data-about-photo]').forEach(img => img.src = 'assets/lifestyle-instructor.webp');
@@ -71,6 +81,38 @@ items.forEach((item, index) => {
   footer.append(price, meta); article.append(number, title, description, footer); itemsContainer.append(article);
 });
 
+const gallery = Array.isArray(data.gallery) ? data.gallery.filter(Boolean) : [];
+if (gallery.length) {
+  document.querySelector('[data-gallery-section]').hidden = false;
+  document.querySelector('[data-gallery-link]').hidden = false;
+  setText('[data-gallery-title]', instructor ? 'Обучение и результаты учеников' : 'Примеры работ');
+  const galleryContainer = document.querySelector('[data-gallery]');
+  gallery.forEach((src, index) => {
+    const figure = document.createElement('figure');
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = instructor ? `Фото с обучения ${index + 1}` : `Пример работы ${index + 1}`;
+    img.loading = 'lazy';
+    figure.append(img);
+    galleryContainer.append(figure);
+  });
+}
+
+const reviews = Array.isArray(data.reviews) ? data.reviews.filter(review => review?.text) : [];
+if (reviews.length) {
+  document.querySelector('[data-reviews-section]').hidden = false;
+  const reviewsContainer = document.querySelector('[data-reviews]');
+  reviews.forEach(review => {
+    const article = document.createElement('article');
+    const quote = document.createElement('p');
+    quote.textContent = `«${review.text}»`;
+    const author = document.createElement('strong');
+    author.textContent = review.author || (instructor ? 'Ученик' : 'Клиент');
+    article.append(quote, author);
+    reviewsContainer.append(article);
+  });
+}
+
 const phoneHref = (data.phone || '').replace(/[^+\d]/g,'');
 const contact = data.bookingLink || data.messenger || (phoneHref ? `tel:${phoneHref}` : '#');
 document.querySelector('[data-contact-button]').href = contact;
@@ -78,6 +120,20 @@ document.querySelector('[data-contact-button]').textContent = instructor ? 'Ос
 document.querySelector('[data-phone]').href = phoneHref ? `tel:${phoneHref}` : '#';
 setText('[data-phone]', data.phone || 'Связаться');
 document.querySelector('[data-payment-note]').hidden = !onlinePending;
+
+if (data.address) {
+  document.querySelector('[data-address-wrap]').hidden = false;
+  setText('[data-address]', data.address);
+}
+if (data.schedule) {
+  document.querySelector('[data-schedule-wrap]').hidden = false;
+  setText('[data-schedule]', data.schedule);
+}
+if (data.social) {
+  const socialButton = document.querySelector('[data-social-button]');
+  socialButton.hidden = false;
+  socialButton.href = data.social;
+}
 
 document.querySelector('[data-copy-link]').addEventListener('click', async event => {
   const futureUrl = `https://see-u.app/${data.slug || 'your-name'}`;
