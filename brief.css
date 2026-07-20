@@ -60,6 +60,7 @@
 .form-grid textarea { resize: vertical; }
 .form-grid input:focus, .form-grid textarea:focus, .form-grid select:focus, .payment-connection input:focus, .payment-connection select:focus { border-color: #a779dc; box-shadow: 0 0 0 3px rgba(167,121,220,.13); }
 .form-grid small { color: var(--muted); font-size: 10px; }
+.form-section__note { margin: -8px 0 18px; color: var(--muted); font-size: 12px; }
 .form-grid__wide { grid-column: 1 / -1; }
 .slug-field { display: flex; align-items: center; overflow: hidden; border: 1px solid #ddd6df; border-radius: 14px; background: var(--soft); }
 .slug-field > span { padding-left: 13px; color: var(--muted); font-size: 12px; }
