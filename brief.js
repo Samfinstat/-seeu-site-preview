@@ -12,6 +12,9 @@ const aiDialog = document.querySelector('#ai-dialog');
 let currentStep = 1;
 let uploadedPhoto = '';
 let uploadedGallery = [];
+let uploadedReviewImages = [];
+const MAX_SERVICES = 30;
+const defaultServiceCatalog = ['Маникюр без покрытия', 'Маникюр с покрытием', 'Снятие покрытия', 'Укрепление ногтей', 'Наращивание ногтей', 'Педикюр без покрытия', 'Педикюр с покрытием', 'Коррекция бровей', 'Окрашивание бровей', 'Ламинирование бровей', 'Наращивание ресниц', 'Ламинирование ресниц', 'Стрижка', 'Окрашивание волос', 'Укладка', 'Макияж', 'Массаж', 'Консультация'];
 
 const text = (name) => form.elements[name]?.value?.trim?.() || '';
 const value = (name) => form.elements[name]?.value || '';
@@ -117,6 +120,77 @@ function parseReviews(source) {
   });
 }
 
+function serviceCatalog() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('seeuServiceCatalog') || '[]');
+    return [...new Set([...defaultServiceCatalog, ...saved].map(item => String(item).trim()).filter(Boolean))].slice(0, 300);
+  } catch (_) { return defaultServiceCatalog; }
+}
+
+function serviceRow(item = {}) {
+  const row = document.createElement('div');
+  row.className = 'service-row';
+  row.innerHTML = `<label><span>Название</span><input name="serviceName" list="service-suggestions-list" required placeholder="Например, маникюр с покрытием"></label><label><span>Цена</span><input name="servicePrice" required inputmode="decimal" placeholder="2 300 ₽"></label><label><span>Продолжительность</span><input name="serviceDuration" required placeholder="2 часа"></label><button type="button" data-remove-service aria-label="Удалить услугу">×</button>`;
+  row.querySelector('[name="serviceName"]').value = item.name || '';
+  row.querySelector('[name="servicePrice"]').value = item.price || '';
+  row.querySelector('[name="serviceDuration"]').value = item.meta || '';
+  return row;
+}
+
+function updateServiceBuilder() {
+  const rows = [...document.querySelectorAll('.service-row')];
+  document.querySelector('[data-service-count]').textContent = rows.length;
+  document.querySelector('[data-add-service]').disabled = rows.length >= MAX_SERVICES;
+  rows.forEach(row => row.querySelector('[data-remove-service]').disabled = rows.length === 1);
+}
+
+function renderServiceRows(items = [{}]) {
+  const list = document.querySelector('[data-service-list]');
+  list.innerHTML = '';
+  items.slice(0, MAX_SERVICES).forEach(item => list.append(serviceRow(item)));
+  if (!list.children.length) list.append(serviceRow());
+  updateServiceBuilder();
+}
+
+function renderServiceSuggestions() {
+  const catalog = serviceCatalog();
+  const datalist = document.querySelector('#service-suggestions-list');
+  const suggestions = document.querySelector('[data-service-suggestions]');
+  datalist.innerHTML = '';
+  suggestions.innerHTML = '';
+  catalog.forEach(name => {
+    const option = document.createElement('option');
+    option.value = name;
+    datalist.append(option);
+  });
+  catalog.slice(0, 8).forEach(name => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.suggestService = name;
+    button.textContent = name;
+    suggestions.append(button);
+  });
+}
+
+function collectServices() {
+  return [...document.querySelectorAll('.service-row')].map(row => ({
+    name: row.querySelector('[name="serviceName"]').value.trim(),
+    price: row.querySelector('[name="servicePrice"]').value.trim(),
+    meta: row.querySelector('[name="serviceDuration"]').value.trim()
+  })).filter(item => item.name);
+}
+
+function saveServiceCatalog(items) {
+  const names = items.map(item => item.name).filter(Boolean);
+  const custom = serviceCatalog().filter(name => !defaultServiceCatalog.includes(name));
+  localStorage.setItem('seeuServiceCatalog', JSON.stringify([...new Set([...custom, ...names])].slice(-250)));
+}
+
+function initServiceBuilder() {
+  renderServiceRows();
+  renderServiceSuggestions();
+}
+
 function collectExtendedData() {
   const instructor = checked('role') === 'instructor';
   const paymentMode = instructor ? checked('paymentMode') : 'services';
@@ -142,7 +216,8 @@ function collectExtendedData() {
     photo: uploadedPhoto,
     advantages: parseLines(text('advantages')),
     gallery: uploadedGallery,
-    reviews: parseReviews(text('reviews')).slice(0, 8),
+    reviews: parseReviews(text('reviews')).slice(0, 10),
+    reviewImages: uploadedReviewImages,
     experience: text('experience'),
     workplace: text('workplace'),
     bookingMode: checked('bookingMode') || 'app',
@@ -150,7 +225,7 @@ function collectExtendedData() {
     courseFormat: value('courseFormat'),
     legalStatus: value('legalStatus'),
     acquiring: text('acquiring'),
-    items: parseItems(instructor ? text('courses') : text('masterServices')),
+    items: instructor ? parseItems(text('courses')) : collectServices(),
     paymentConnectionRequired: instructor && paymentMode === 'online'
   };
 }
@@ -174,6 +249,7 @@ function collectRequestData() {
 function saveDraft() {
   const data = {};
   new FormData(form).forEach((val, key) => { if (!(val instanceof File)) data[key] = val; });
+  data.__services = collectServices();
   localStorage.setItem('seeuBriefDraft', JSON.stringify(data));
 }
 
@@ -182,7 +258,9 @@ function restoreDraft() {
   if (!raw) return;
   try {
     const data = JSON.parse(raw);
+    if (Array.isArray(data.__services)) renderServiceRows(data.__services);
     Object.entries(data).forEach(([name, val]) => {
+      if (name === '__services' || name === 'serviceName' || name === 'servicePrice' || name === 'serviceDuration') return;
       const fields = [...form.querySelectorAll(`[name="${name}"]`)];
       fields.forEach(field => {
         if (field.type === 'radio' || field.type === 'checkbox') field.checked = field.value === val;
@@ -236,6 +314,10 @@ async function readPhotos() {
   if (files.length > 10) throw new Error('Можно загрузить не более 10 дополнительных фотографий.');
   uploadedGallery = [];
   for (const file of files) uploadedGallery.push(await resizeImage(file, 900, .7));
+  const reviewFiles = [...(form.elements.reviewScreenshots?.files || [])];
+  if (reviewFiles.length > 10) throw new Error('Можно загрузить не более 10 скриншотов отзывов.');
+  uploadedReviewImages = [];
+  for (const file of reviewFiles) uploadedReviewImages.push(await resizeImage(file, 760, .68));
 }
 
 const dayNames = [
@@ -280,7 +362,7 @@ function saveSchedule() {
   scheduleDialog.close();
 }
 
-const aiFields = new Set(['headline', 'about', 'advantages', 'profession', 'sourceNotes', 'requestComment', 'workplace', 'audience', 'masterServices', 'courses', 'reviews']);
+const aiFields = new Set(['headline', 'about', 'advantages', 'profession', 'sourceNotes', 'requestComment', 'workplace', 'audience', 'courses']);
 function attachAiHelpers() {
   aiFields.forEach(name => {
     const field = form.elements[name];
@@ -314,6 +396,16 @@ form.elements.portfolioPhotos?.addEventListener('change', event => {
   }
   note.textContent = count ? `Выбрано фотографий: ${count} из 10` : 'До 10 фотографий. Они автоматически оптимизируются перед предпросмотром.';
 });
+form.elements.reviewScreenshots?.addEventListener('change', event => {
+  const count = event.currentTarget.files.length;
+  const note = document.querySelector('[data-review-count]');
+  if (count > 10) {
+    event.currentTarget.value = '';
+    note.textContent = 'Можно выбрать не более 10 скриншотов.';
+    return;
+  }
+  note.textContent = count ? `Выбрано скриншотов: ${count} из 10` : 'До 10 скриншотов. Перед публикацией можно будет скрыть личные данные.';
+});
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
@@ -327,6 +419,7 @@ form.addEventListener('submit', async event => {
     } else {
       await readPhotos();
       const data = collectExtendedData();
+      if (data.role === 'master') saveServiceCatalog(data.items);
       try { localStorage.setItem('seeuGeneratedSite', JSON.stringify(data)); }
       catch (_) { throw new Error('Фотографии получились слишком большими для предпросмотра. Выберите меньше изображений.'); }
       showResult(false, data);
@@ -342,17 +435,40 @@ document.addEventListener('click', event => {
   if (event.target.closest('[data-schedule-close]')) scheduleDialog.close();
   if (event.target.closest('[data-schedule-save]')) saveSchedule();
   if (event.target.closest('[data-ai-close]')) aiDialog.close();
+  if (event.target.closest('[data-add-service]')) {
+    const list = document.querySelector('[data-service-list]');
+    if (list.children.length < MAX_SERVICES) list.append(serviceRow());
+    updateServiceBuilder();
+    saveDraft();
+  }
+  const removeService = event.target.closest('[data-remove-service]');
+  if (removeService && document.querySelectorAll('.service-row').length > 1) {
+    removeService.closest('.service-row').remove();
+    updateServiceBuilder();
+    saveDraft();
+  }
+  const suggestedService = event.target.closest('[data-suggest-service]');
+  if (suggestedService) {
+    const empty = [...document.querySelectorAll('[name="serviceName"]')].find(input => !input.value.trim());
+    if (empty) empty.value = suggestedService.dataset.suggestService;
+    else if (document.querySelectorAll('.service-row').length < MAX_SERVICES) {
+      document.querySelector('[data-service-list]').append(serviceRow({ name: suggestedService.dataset.suggestService }));
+    }
+    updateServiceBuilder();
+    saveDraft();
+  }
   const aiButton = event.target.closest('[data-ai-for]');
   if (aiButton) {
     const field = form.elements[aiButton.dataset.aiFor];
     const label = field.closest('label')?.querySelector(':scope > span')?.textContent || 'Текст';
-    document.querySelector('[data-ai-label]').textContent = label.replace('*', '').trim();
-    document.querySelector('[data-ai-prompt]').value = field.value ? `Улучши этот текст: ${field.value}` : '';
+    document.querySelector('[data-ai-label]').textContent = aiButton.dataset.aiFor === 'reviews' ? 'Оформить реальные отзывы' : label.replace('*', '').trim();
+    document.querySelector('[data-ai-prompt]').value = field.value ? `Улучши этот текст, не добавляя новых фактов: ${field.value}` : '';
     aiDialog.showModal();
   }
 });
 resultDialog.addEventListener('click', event => { if (event.target === resultDialog) resultDialog.close(); });
 
+initServiceBuilder();
 restoreDraft();
 initSchedule();
 attachAiHelpers();
