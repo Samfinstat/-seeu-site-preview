@@ -62,9 +62,9 @@ if (referralRange) {
     const { tariff, months } = getTier(count);
     const reward = count * 250;
     const savings = months ? (5000 - tariff) * months : 0;
-    const progress = ((count - Number(referralRange.min)) / (Number(referralRange.max) - Number(referralRange.min))) * 100;
+    const progress = ((count - Number(referralRange.min)) / (Number(referralRange.max) - Number(referralRange.min))) * 100;\n    const thumbRadius = 16;\n    const progressOffset = thumbRadius * (1 - (2 * progress / 100));
 
-    referralRange.style.setProperty('--range-progress', `${progress}%`);
+    referralRange.style.setProperty('--range-progress', `calc(${progress}% + ${progressOffset}px)`);
     countOutput.textContent = String(count);
     tariffOutput.textContent = `${money.format(tariff)} ₽`;
     rewardOutput.textContent = `${money.format(reward)} ₽`;
