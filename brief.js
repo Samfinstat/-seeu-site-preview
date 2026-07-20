@@ -92,7 +92,7 @@ function updateLegalFields() {
   ['ownerLegalStatus', 'ownerLegalName', 'ownerInn', 'ownerAddress', 'ownerEmail'].forEach(name => {
     form.elements[name].required = independentOperator;
   });
-  ['ownerSettlementAccount', 'ownerBankName', 'ownerBik', 'ownerCorrespondentAccount'].forEach(name => {
+  ['ownerServiceDescription', 'ownerSettlementAccount', 'ownerBankName', 'ownerBik', 'ownerCorrespondentAccount'].forEach(name => {
     form.elements[name].required = online;
   });
 }
@@ -292,6 +292,7 @@ function collectExtendedData() {
     ownerAddress: text('ownerAddress'),
     ownerEmail: text('ownerEmail'),
     ownerPhone: text('ownerPhone'),
+    ownerServiceDescription: text('ownerServiceDescription'),
     ownerSettlementAccount: text('ownerSettlementAccount'),
     ownerBankName: text('ownerBankName'),
     ownerBik: text('ownerBik'),
