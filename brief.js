@@ -6,6 +6,7 @@ const submitButton = document.querySelector('[data-submit]');
 const roleInputs = [...form.querySelectorAll('[name="role"]')];
 const launchInputs = [...form.querySelectorAll('[name="launchMode"]')];
 const paymentInputs = [...form.querySelectorAll('[name="paymentMode"]')];
+const bookingInputs = [...form.querySelectorAll('[name="bookingMode"]')];
 const resultDialog = document.querySelector('#brief-result');
 const scheduleDialog = document.querySelector('#schedule-dialog');
 const aiDialog = document.querySelector('#ai-dialog');
@@ -60,6 +61,16 @@ function updateThemeFields() {
   document.querySelector('[data-custom-theme]').hidden = checked('theme') !== 'custom';
 }
 
+function updateBookingFields() {
+  const mode = checked('bookingMode') || 'app';
+  document.querySelector('[data-booking-app]').hidden = mode !== 'app';
+  document.querySelector('[data-booking-request]').hidden = mode !== 'request';
+  document.querySelector('[data-booking-external]').hidden = mode !== 'external';
+  form.elements.appBookingLink.required = mode === 'app';
+  form.elements.externalBookingLink.required = mode === 'external';
+  document.querySelector('[data-booking-error]').hidden = true;
+}
+
 function customColorValue() {
   const hex = text('customColorHex');
   return /^#[0-9a-f]{6}$/i.test(hex) ? hex.toUpperCase() : value('customColor') || '#A779DC';
@@ -78,7 +89,7 @@ function updateDetailsMode() {
 
 function activeRequiredFields() {
   const step = steps[currentStep - 1];
-  return [...step.querySelectorAll('[required]')].filter(field => !field.closest('[hidden]'));
+  return [...step.querySelectorAll('input, textarea, select')].filter(field => !field.closest('[hidden]') && field.willValidate);
 }
 
 function validateStep() {
@@ -86,6 +97,13 @@ function validateStep() {
   if (invalid) {
     invalid.reportValidity();
     invalid.focus();
+    return false;
+  }
+  const selfMaster = currentStep === 3 && checked('launchMode') === 'self' && checked('role') === 'master';
+  if (selfMaster && checked('bookingMode') === 'request' && !text('requestTelegram') && !text('requestWhatsApp') && !text('requestEmail')) {
+    const error = document.querySelector('[data-booking-error]');
+    error.hidden = false;
+    document.querySelector('[data-booking-request]').scrollIntoView({ behavior: 'smooth', block: 'center' });
     return false;
   }
   return true;
@@ -219,6 +237,11 @@ function collectExtendedData() {
     messenger: text('messenger'),
     social: text('social'),
     bookingLink: text('bookingLink'),
+    appBookingLink: text('appBookingLink'),
+    requestTelegram: text('requestTelegram'),
+    requestWhatsApp: text('requestWhatsApp'),
+    requestEmail: text('requestEmail'),
+    externalBookingLink: text('externalBookingLink'),
     address: text('address'),
     schedule: text('schedule'),
     theme: checked('theme') || 'coral',
@@ -394,6 +417,7 @@ prevButton.addEventListener('click', () => setStep(currentStep - 1));
 roleInputs.forEach(input => input.addEventListener('change', updateRoleFields));
 launchInputs.forEach(input => input.addEventListener('change', updateDetailsMode));
 paymentInputs.forEach(input => input.addEventListener('change', updateRoleFields));
+bookingInputs.forEach(input => input.addEventListener('change', updateBookingFields));
 form.querySelectorAll('[name="theme"]').forEach(input => input.addEventListener('change', updateThemeFields));
 form.elements.customColor?.addEventListener('input', event => {
   form.elements.customColorHex.value = event.currentTarget.value.toUpperCase();
@@ -491,6 +515,7 @@ initServiceBuilder();
 restoreDraft();
 initSchedule();
 attachAiHelpers();
+form.elements.bookingLink?.closest('label')?.setAttribute('hidden', '');
 if (text('schedule')) document.querySelector('[data-schedule-value]').textContent = text('schedule');
 const params = new URLSearchParams(location.search);
 const requestedRole = params.get('role');
@@ -514,4 +539,5 @@ if (params.get('manager') === '1') {
 updateDetailsMode();
 updateRoleFields();
 updateThemeFields();
+updateBookingFields();
 setStep(1, false);
