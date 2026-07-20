@@ -12,6 +12,7 @@ let data = fallback;
 try { data = { ...fallback, ...JSON.parse(localStorage.getItem('seeuGeneratedSite') || '{}') }; } catch (_) {}
 const instructor = data.role === 'instructor';
 const onlinePending = instructor && data.paymentMode === 'online';
+const seeUEcosystem = data.useSeeUEcosystem === true || (!instructor && data.bookingMode === 'app') || (onlinePending && data.onlineDataMode !== 'own');
 const setText = (selector, content) => document.querySelectorAll(selector).forEach(node => node.textContent = content);
 
 function customPalette(hex) {
@@ -79,6 +80,13 @@ if (instructor) {
 } else {
   setText('[data-format]', data.bookingMode === 'app' ? 'Через SeeU' : 'По заявке');
   setText('[data-hero-text]', data.workplace ? `${data.workplace}. Понятные цены и удобная запись без долгой переписки.` : 'Понятные цены и удобная запись без долгой переписки.');
+  if (seeUEcosystem) {
+    setText('[data-step-two]', 'Перейдите в SeeU');
+    setText('[data-step-two-note]', 'Запись и общение с мастером доступны только внутри приложения.');
+    setText('[data-step-three]', 'Получите подтверждение');
+    setText('[data-step-three-note]', 'Все детали записи сохранятся в вашем профиле SeeU.');
+    setText('[data-final-text]', 'Запись, вопросы и общение с мастером проходят только внутри экосистемы SeeU.');
+  }
 }
 
 const defaults = instructor
@@ -149,20 +157,28 @@ const whatsappHref = data.requestWhatsApp ? (data.requestWhatsApp.startsWith('ht
 const emailHref = data.requestEmail ? `mailto:${data.requestEmail}` : '';
 let contact = data.bookingLink || data.messenger || (phoneHref ? `tel:${phoneHref}` : '#');
 let contactLabel = instructor ? 'Оставить заявку' : 'Записаться';
-if (onlinePending && data.onlineDataMode !== 'own') {
-  contact = '#contact';
-  contactLabel = 'Оставить заявку в SeeU';
-} else if (!instructor && data.bookingMode === 'app' && data.appBookingLink) {
-  contact = data.appBookingLink;
-  contactLabel = 'Записаться в SeeU';
+if (seeUEcosystem) {
+  contact = data.appBookingLink || '#contact';
+  contactLabel = instructor ? 'Перейти в SeeU' : 'Записаться в SeeU';
 } else if (!instructor && data.bookingMode === 'request') {
   contact = telegramHref || whatsappHref || emailHref || contact;
   contactLabel = telegramHref ? 'Написать в Telegram' : whatsappHref ? 'Написать в WhatsApp' : emailHref ? 'Написать на почту' : 'Оставить заявку';
 }
-document.querySelector('[data-contact-button]').href = contact;
-document.querySelector('[data-contact-button]').textContent = contactLabel;
-document.querySelector('[data-phone]').href = phoneHref ? `tel:${phoneHref}` : '#';
-setText('[data-phone]', data.phone || 'Связаться');
+document.querySelectorAll('[data-contact-button], .profile-contact-link, [data-primary-cta]').forEach(link => {
+  link.href = contact;
+  if (!link.matches('[data-primary-cta]') || seeUEcosystem) link.textContent = contactLabel;
+});
+const phoneLink = document.querySelector('[data-phone]');
+phoneLink.hidden = seeUEcosystem;
+if (seeUEcosystem) {
+  phoneLink.removeAttribute('href');
+  setText('[data-final-text]', instructor
+    ? 'Заявка, вопросы и доступ к обучению оформляются только внутри экосистемы SeeU.'
+    : 'Запись, вопросы и общение с мастером проходят только внутри экосистемы SeeU.');
+} else {
+  phoneLink.href = phoneHref ? `tel:${phoneHref}` : '#';
+  phoneLink.textContent = data.phone || 'Связаться';
+}
 document.querySelector('[data-payment-note]').hidden = !onlinePending;
 
 if (data.address) {
@@ -173,17 +189,16 @@ if (data.schedule) {
   document.querySelector('[data-schedule-wrap]').hidden = false;
   setText('[data-schedule]', data.schedule);
 }
-if (data.social) {
+if (!seeUEcosystem && data.social) {
   const socialButton = document.querySelector('[data-social-button]');
   socialButton.hidden = false;
   socialButton.href = data.social;
 }
 
-if (!instructor && data.bookingMode === 'request') {
+if (!seeUEcosystem && !instructor && data.bookingMode === 'request') {
   const channels = [
     ['Telegram', telegramHref], ['WhatsApp', whatsappHref], ['Электронная почта', emailHref]
   ].filter(([, href]) => href && href !== contact);
-  const phoneLink = document.querySelector('[data-phone]');
   channels.forEach(([label, href]) => {
     const link = document.createElement('a');
     link.className = 'profile-button profile-button--outline';
