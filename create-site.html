@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Создание персональной страницы мастера или инструктора в экосистеме SeeU.">
+  <title>Создать страницу — SeeU</title>
+  <link rel="stylesheet" href="styles.css?v=20260720-8">
+  <link rel="stylesheet" href="brief.css?v=20260720-8">
+</head>
+<body class="brief-page">
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="SeeU — личный помощник"><img src="assets/seeu-logo.webp" alt="" width="48" height="48"><span><strong>SeeU</strong><small>личный помощник</small></span></a>
+      <a class="brief-exit" href="index.html">Вернуться на главную</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="brief-hero">
+      <div class="container brief-hero__grid">
+        <div><p class="eyebrow eyebrow-lilac">АВТОМАТИЧЕСКОЕ СОЗДАНИЕ</p><h1>Создайте персональную страницу без конструктора</h1><p>Ответьте на вопросы самостоятельно или передайте создание нашей команде. В обоих случаях используется единый шаблон данных — страницу легко запускать и обновлять.</p></div>
+        <div class="brief-hero__result"><span>Результат</span><strong>готовая адаптивная страница</strong><small>для мастера, частного специалиста или инструктора</small></div>
+      </div>
+    </section>
+
+    <section class="brief-workspace">
+      <div class="container brief-layout">
+        <aside class="brief-progress" aria-label="Этапы заполнения">
+          <p><b data-progress-number>1</b><span><strong data-progress-title>Способ запуска</strong><small data-progress-note>Выберите, кто заполнит данные</small></span></p>
+          <div class="brief-progress__track"><i data-progress-bar></i></div>
+          <ol><li class="is-active">Запуск</li><li>Роль</li><li>Информация</li><li>Проверка</li></ol>
+          <div class="brief-progress__help"><strong>Можно продолжить позже</strong><span>Черновик сохраняется в этом браузере автоматически.</span></div>
+        </aside>
+
+        <form class="brief-form" id="site-brief" novalidate>
+          <section class="brief-step is-active" data-step="1">
+            <p class="brief-step__number">ШАГ 1 ИЗ 4</p><h2>Как хотите подготовить страницу?</h2><p class="brief-step__lead">От выбора зависит количество вопросов. Итоговый шаблон страницы будет одинаково качественным.</p>
+            <div class="choice-grid">
+              <label class="choice-card"><input type="radio" name="launchMode" value="self" checked><span class="choice-card__icon">⚡</span><strong>Заполнить самостоятельно</strong><small>Расширенный бриф сразу соберёт персональную страницу.</small><em>Около 10–15 минут</em></label>
+              <label class="choice-card"><input type="radio" name="launchMode" value="manager"><span class="choice-card__icon">✦</span><strong>Передать создание нам</strong><small>Оставьте контакты и источники. Менеджер изучит их и заполнит расширенный бриф за вас.</small><em>Около 2 минут</em></label>
+            </div>
+          </section>
+
+          <section class="brief-step" data-step="2" hidden>
+            <p class="brief-step__number">ШАГ 2 ИЗ 4</p><h2>Для кого создаём страницу?</h2><p class="brief-step__lead">Набор следующих вопросов и структура готового сайта подстроятся под выбранную роль.</p>
+            <div class="choice-grid">
+              <label class="choice-card"><input type="radio" name="role" value="master" checked><span class="choice-card__icon">♡</span><strong>Мастер или частный специалист</strong><small>Услуги, цены, портфолио, онлайн-запись или сбор заявок.</small><em>Клиенты записываются на услуги</em></label>
+              <label class="choice-card"><input type="radio" name="role" value="instructor"><span class="choice-card__icon">↗</span><strong>Инструктор или эксперт</strong><small>Обучение, группы, курсы, заявки и при необходимости онлайн-оплата.</small><em>Ученики выбирают обучение</em></label>
+            </div>
+            <div class="conditional-panel" data-instructor-payment hidden>
+              <h3>Как будете принимать оплату за обучение?</h3>
+              <div class="mini-choice-grid">
+                <label><input type="radio" name="paymentMode" value="leads" checked><span><strong>Без онлайн-оплаты</strong><small>Страница создаётся сразу и собирает заявки.</small></span></label>
+                <label><input type="radio" name="paymentMode" value="online"><span><strong>Подключить онлайн-оплату</strong><small>Страница создаётся сразу, а в Битрикс24 ставится задача на подключение вашего эквайринга.</small></span></label>
+              </div>
+            </div>
+          </section>
+
+          <section class="brief-step" data-step="3" hidden>
+            <p class="brief-step__number">ШАГ 3 ИЗ 4</p><h2 data-details-title>Расскажите о себе и своих услугах</h2><p class="brief-step__lead" data-details-lead>Эти данные автоматически попадут в персональный шаблон.</p>
+
+            <div data-short-brief hidden>
+              <div class="form-section"><h3>Контакты</h3><div class="form-grid"><label><span>Имя *</span><input name="requestName" autocomplete="name" required placeholder="Например, Анна"></label><label><span>Телефон *</span><input name="requestPhone" type="tel" autocomplete="tel" required placeholder="+7 999 000-00-00"></label><label><span>Город</span><input name="requestCity" placeholder="Самара"></label><label><span>Как удобнее связаться?</span><select name="contactMethod"><option>Telegram</option><option>WhatsApp</option><option>Телефон</option><option>Электронная почта</option></select></label></div></div>
+              <div class="form-section"><h3>Где менеджеру взять информацию?</h3><div class="form-grid one"><label><span>Ссылки на социальные сети, сайт или портфолио *</span><textarea name="contentSources" required rows="4" placeholder="Вставьте ссылки — каждую с новой строки"></textarea></label><label><span>Что можно взять из этих источников?</span><textarea name="sourceNotes" rows="3" placeholder="Услуги, цены, фотографии, описание, отзывы"></textarea></label><label><span>Что нужно обязательно учесть?</span><textarea name="requestComment" rows="3" placeholder="Пожелания по странице, важные услуги, стиль общения"></textarea></label></div></div>
+            </div>
+
+            <div data-extended-brief>
+              <div class="form-section"><h3>Основная информация</h3><div class="form-grid"><label><span>Имя или название *</span><input name="displayName" required placeholder="Анна Волкова"></label><label><span>Профессия или направление *</span><input name="profession" required placeholder="Мастер маникюра"></label><label><span>Город *</span><input name="city" required placeholder="Самара"></label><label><span>Адрес страницы</span><div class="slug-field"><span>see-u.app/</span><input name="slug" placeholder="anna-volkova"></div></label><label class="form-grid__wide"><span>Главная фраза на первом экране *</span><input name="headline" required placeholder="Маникюр, к которому хочется возвращаться"></label><label class="form-grid__wide"><span>Коротко о вас</span><textarea name="about" rows="4" placeholder="Опыт, подход к работе и почему клиенты выбирают вас"></textarea></label></div></div>
+
+              <div class="form-section"><h3>Контакты и оформление</h3><div class="form-grid"><label><span>Телефон *</span><input name="phone" type="tel" required placeholder="+7 999 000-00-00"></label><label><span>Telegram или WhatsApp</span><input name="messenger" placeholder="https://t.me/... или номер"></label><label><span>Социальная сеть</span><input name="social" type="url" placeholder="https://..."></label><label><span>Ссылка для записи</span><input name="bookingLink" placeholder="Можно оставить пустой"></label><label class="form-grid__wide"><span>Главная фотография</span><input name="photo" type="file" accept="image/jpeg,image/png,image/webp"><small>Для прототипа — до 1,5 МБ. Позже фотографии будут загружаться на сервер.</small></label><fieldset class="theme-picker form-grid__wide"><legend>Цвет страницы</legend><label><input type="radio" name="theme" value="coral" checked><i class="theme-coral"></i><span>Тёплый</span></label><label><input type="radio" name="theme" value="lilac"><i class="theme-lilac"></i><span>Лиловый</span></label><label><input type="radio" name="theme" value="sage"><i class="theme-sage"></i><span>Мягкий зелёный</span></label><label><input type="radio" name="theme" value="sand"><i class="theme-sand"></i><span>Песочный</span></label></fieldset></div></div>
+
+              <div class="form-section" data-master-fields><h3>Услуги мастера</h3><div class="form-grid"><label><span>Опыт</span><input name="experience" placeholder="Например, 6 лет"></label><label><span>Где принимаете?</span><input name="workplace" placeholder="Студия в центре города"></label><label class="form-grid__wide"><span>Услуги *</span><textarea name="masterServices" rows="6" placeholder="Каждая услуга с новой строки:&#10;Маникюр с покрытием | 2 300 ₽ | 2 часа&#10;Укрепление ногтей | 700 ₽ | 30 минут"></textarea><small>Формат: название | цена | длительность</small></label><fieldset class="form-grid__wide inline-options"><legend>Как клиент записывается?</legend><label><input type="radio" name="bookingMode" value="app" checked><span>Через приложение SeeU</span></label><label><input type="radio" name="bookingMode" value="request"><span>Оставляет заявку</span></label><label><input type="radio" name="bookingMode" value="external"><span>По внешней ссылке</span></label></fieldset></div></div>
+
+              <div class="form-section" data-instructor-fields hidden><h3>Обучение и курсы</h3><div class="form-grid"><label><span>Для кого обучение?</span><input name="audience" placeholder="Начинающие мастера"></label><label><span>Формат</span><select name="courseFormat"><option>Онлайн</option><option>Офлайн</option><option>Онлайн и офлайн</option></select></label><label class="form-grid__wide"><span>Курсы или программы *</span><textarea name="courses" rows="6" placeholder="Каждый курс с новой строки:&#10;Базовый курс | 25 000 ₽ | 6 недель&#10;Повышение квалификации | 12 000 ₽ | 2 дня"></textarea><small>Формат: название | цена | продолжительность</small></label></div><div class="payment-connection" data-payment-connection hidden><span>₽</span><div><strong>Страница запустится до подключения оплаты</strong><p>Сначала она будет собирать заявки. Одновременно создадим задачу менеджеру на подключение вашего эквайринга.</p></div><label><span>Ваш статус</span><select name="legalStatus"><option value="">Выберите</option><option>Самозанятый</option><option>ИП</option><option>ООО</option></select></label><label><span>Банк или эквайринг</span><input name="acquiring" placeholder="Например, Т-Банк"></label></div></div>
+            </div>
+          </section>
+
+          <section class="brief-step" data-step="4" hidden>
+            <p class="brief-step__number">ШАГ 4 ИЗ 4</p><h2>Проверьте сценарий запуска</h2><p class="brief-step__lead">Показываем, что произойдёт после отправки формы.</p>
+            <div class="brief-summary" data-summary></div>
+            <label class="consent-row"><input type="checkbox" name="consent" required><span>Соглашаюсь на обработку персональных данных для создания страницы и связи по заявке.</span></label>
+            <p class="prototype-note">Сейчас это интерактивный прототип: данные сохраняются только в вашем браузере и не отправляются в Битрикс24.</p>
+          </section>
+
+          <div class="brief-actions"><button class="button button-light" type="button" data-prev hidden>← Назад</button><button class="button button-dark" type="button" data-next>Продолжить <span>→</span></button><button class="button button-dark" type="submit" data-submit hidden>Создать результат <span>→</span></button></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="brief-result" id="brief-result"><div><button type="button" class="dialog-close" data-close-result aria-label="Закрыть">×</button><span class="result-icon">✓</span><h2 data-result-title>Готово</h2><p data-result-text></p><div data-result-actions></div></div></dialog>
+  <script src="brief.js?v=20260720-8"></script>
+</body>
+</html>
