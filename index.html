@@ -10,6 +10,13 @@
   <script src="page-chunks/index.part1.js"></script>
   <script src="page-chunks/index.part2.js"></script>
   <script src="page-chunks/index.part3.js"></script>
-  <script>document.open();document.write(atob(window.SEEU_PAGE_B64));document.close();</script>
+  <script>
+    const binary = atob(window.SEEU_PAGE_B64);
+    const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+    const html = new TextDecoder('utf-8').decode(bytes);
+    document.open();
+    document.write(html);
+    document.close();
+  </script>
 </body>
 </html>
