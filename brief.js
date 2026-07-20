@@ -102,6 +102,17 @@ function parseItems(source) {
   });
 }
 
+function parseLines(source) {
+  return source.split('\n').map(line => line.trim()).filter(Boolean);
+}
+
+function parseReviews(source) {
+  return parseLines(source).map(line => {
+    const [author, ...parts] = line.split('|').map(part => part.trim());
+    return { author: parts.length ? author : 'Клиент', text: parts.length ? parts.join(' | ') : author };
+  });
+}
+
 function collectExtendedData() {
   const instructor = checked('role') === 'instructor';
   const paymentMode = instructor ? checked('paymentMode') : 'services';
@@ -121,8 +132,13 @@ function collectExtendedData() {
     messenger: text('messenger'),
     social: text('social'),
     bookingLink: text('bookingLink'),
+    address: text('address'),
+    schedule: text('schedule'),
     theme: checked('theme') || 'coral',
     photo: uploadedPhoto,
+    advantages: parseLines(text('advantages')),
+    gallery: parseLines(text('portfolioLinks')).slice(0, 8),
+    reviews: parseReviews(text('reviews')).slice(0, 8),
     experience: text('experience'),
     workplace: text('workplace'),
     bookingMode: checked('bookingMode') || 'app',
