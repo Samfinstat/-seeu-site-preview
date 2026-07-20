@@ -191,20 +191,18 @@ if (!instructor && data.bookingMode === 'request') {
 
 const independentOperator = instructor || (!instructor && data.bookingMode === 'request');
 const baseLegalDocs = [
-  'Пользовательское соглашение SeeU',
-  'Политика обработки персональных данных SeeU',
+  'Пользовательское соглашение',
+  'Политика обработки персональных данных',
   'Согласие на обработку и передачу данных',
   'Политика cookies',
-  'Оферта SeeU на использование платформы'
+  'Публичная оферта и условия расчётов'
 ];
-const operatorDocs = independentOperator ? ['Сведения самостоятельного оператора', 'Условия обработки данных специалистом'] : [];
-const sellerDocs = onlinePending ? ['Оферта продавца курса', 'Политика продавца', 'Реквизиты получателя оплаты'] : [];
 const legalDocs = document.querySelector('[data-legal-docs]');
-[...baseLegalDocs, ...operatorDocs, ...sellerDocs].forEach((title, index) => {
+baseLegalDocs.forEach((title, index) => {
   const item = document.createElement('button');
   item.type = 'button';
   item.disabled = true;
-  item.innerHTML = `<span>${String(index + 1).padStart(2, '0')}</span><strong>${title}</strong><small>будет сформирован</small>`;
+  item.innerHTML = `<span>${String(index + 1).padStart(2, '0')}</span><strong>${title}</strong><small>единый документ · условия подставляются автоматически</small>`;
   legalDocs.append(item);
 });
 
@@ -216,7 +214,7 @@ if (independentOperator) {
   const details = [data.ownerLegalStatus, data.ownerInn && `ИНН ${data.ownerInn}`, data.ownerOgrn && `ОГРН/ОГРНИП ${data.ownerOgrn}`, data.ownerAddress, data.ownerEmail].filter(Boolean);
   setText('[data-legal-details]', details.join(' · ') || 'Реквизиты будут добавлены после заполнения брифа');
   setText('[data-legal-scope]', onlinePending
-    ? 'SeeU обеспечивает работу платформы и первичный сбор данных. Продажу курса, приём оплаты и последующую обработку клиентской базы осуществляет указанный продавец.'
+    ? 'Используется единый комплект документов SeeU. В нём специалист дополнительно указывается как продавец и оператор, добавляются его реквизиты и условия приёма оплаты.'
     : 'SeeU обеспечивает форму и передачу заявки. После её передачи в выбранный мессенджер или почту дальнейшую обработку клиентской базы самостоятельно осуществляет указанный специалист.');
 } else {
   setText('[data-legal-scope]', 'Запись и обработка данных выполняются внутри экосистемы SeeU по единому комплекту документов платформы.');
