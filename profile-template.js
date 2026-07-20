@@ -1,7 +1,7 @@
 const fallback = {
   role: 'master', paymentMode: 'services', displayName: 'Анна Волкова', profession: 'Мастер маникюра', city: 'Самара', slug: 'anna-volkova',
   headline: 'Маникюр, к которому хочется возвращаться', about: 'Я создаю аккуратный и ноский маникюр, внимательно отношусь к пожеланиям и всегда заранее объясняю стоимость и этапы работы.',
-  phone: '+7 999 000-00-00', messenger: '', social: '', bookingLink: '', address: 'Центр Самары', schedule: 'Пн–Сб, 10:00–20:00', theme: 'coral', customColor: '#A779DC', photo: '', experience: '6 лет', workplace: 'Студия в центре города', bookingMode: 'app',
+  phone: '+7 999 000-00-00', messenger: '', social: '', bookingLink: '', appBookingLink: '', requestTelegram: '', requestWhatsApp: '', requestEmail: '', externalBookingLink: '', address: 'Центр Самары', schedule: 'Пн–Сб, 10:00–20:00', theme: 'coral', customColor: '#A779DC', photo: '', experience: '6 лет', workplace: 'Студия в центре города', bookingMode: 'app',
   advantages: ['Бережная работа', 'Цена известна заранее', 'Удобная запись'], gallery: [], reviews: [], reviewImages: [],
   items: [{name:'Маникюр с покрытием',price:'2 300 ₽',meta:'2 часа'},{name:'Снятие и маникюр',price:'1 400 ₽',meta:'1,5 часа'},{name:'Укрепление ногтей',price:'700 ₽',meta:'30 минут'}]
 };
@@ -75,7 +75,7 @@ if (instructor) {
   setText('[data-final-title]', 'Выберите программу обучения');
   setText('[data-final-text]', 'Оставьте заявку — отвечу на вопросы о программе, формате и ближайшем наборе.');
 } else {
-  setText('[data-format]', data.bookingMode === 'app' ? 'Онлайн' : 'По заявке');
+  setText('[data-format]', data.bookingMode === 'app' ? 'Через SeeU' : data.bookingMode === 'external' ? 'По внешней ссылке' : 'По заявке');
   setText('[data-hero-text]', data.workplace ? `${data.workplace}. Понятные цены и удобная запись без долгой переписки.` : 'Понятные цены и удобная запись без долгой переписки.');
 }
 
@@ -141,9 +141,24 @@ if (reviews.length || reviewImages.length) {
 }
 
 const phoneHref = (data.phone || '').replace(/[^+\d]/g,'');
-const contact = data.bookingLink || data.messenger || (phoneHref ? `tel:${phoneHref}` : '#');
+const telegramHref = data.requestTelegram ? (data.requestTelegram.startsWith('http') ? data.requestTelegram : `https://t.me/${data.requestTelegram.replace(/^@/, '')}`) : '';
+const whatsappDigits = (data.requestWhatsApp || '').replace(/\D/g, '');
+const whatsappHref = data.requestWhatsApp ? (data.requestWhatsApp.startsWith('http') ? data.requestWhatsApp : `https://wa.me/${whatsappDigits}`) : '';
+const emailHref = data.requestEmail ? `mailto:${data.requestEmail}` : '';
+let contact = data.bookingLink || data.messenger || (phoneHref ? `tel:${phoneHref}` : '#');
+let contactLabel = instructor ? 'Оставить заявку' : 'Записаться';
+if (!instructor && data.bookingMode === 'app' && data.appBookingLink) {
+  contact = data.appBookingLink;
+  contactLabel = 'Записаться в SeeU';
+} else if (!instructor && data.bookingMode === 'external' && data.externalBookingLink) {
+  contact = data.externalBookingLink;
+  contactLabel = 'Перейти к записи';
+} else if (!instructor && data.bookingMode === 'request') {
+  contact = telegramHref || whatsappHref || emailHref || contact;
+  contactLabel = telegramHref ? 'Написать в Telegram' : whatsappHref ? 'Написать в WhatsApp' : emailHref ? 'Написать на почту' : 'Оставить заявку';
+}
 document.querySelector('[data-contact-button]').href = contact;
-document.querySelector('[data-contact-button]').textContent = instructor ? 'Оставить заявку' : 'Записаться';
+document.querySelector('[data-contact-button]').textContent = contactLabel;
 document.querySelector('[data-phone]').href = phoneHref ? `tel:${phoneHref}` : '#';
 setText('[data-phone]', data.phone || 'Связаться');
 document.querySelector('[data-payment-note]').hidden = !onlinePending;
@@ -160,6 +175,20 @@ if (data.social) {
   const socialButton = document.querySelector('[data-social-button]');
   socialButton.hidden = false;
   socialButton.href = data.social;
+}
+
+if (!instructor && data.bookingMode === 'request') {
+  const channels = [
+    ['Telegram', telegramHref], ['WhatsApp', whatsappHref], ['Электронная почта', emailHref]
+  ].filter(([, href]) => href && href !== contact);
+  const phoneLink = document.querySelector('[data-phone]');
+  channels.forEach(([label, href]) => {
+    const link = document.createElement('a');
+    link.className = 'profile-button profile-button--outline';
+    link.href = href;
+    link.textContent = label;
+    phoneLink.before(link);
+  });
 }
 
 document.querySelector('[data-copy-link]').addEventListener('click', async event => {
