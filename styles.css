@@ -65,3 +65,17 @@
 @media (max-width: 720px) {
   .solution-card { min-height: auto; }
 }
+
+.dialog-options a {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--soft);
+  text-align: left;
+  cursor: pointer;
+}
+.dialog-options a:hover { background: var(--lilac-soft); }
+.dialog-options a span { color: var(--muted); font-size: 13px; }
