@@ -2,7 +2,7 @@ const fallback = {
   role: 'master', paymentMode: 'services', displayName: 'Анна Волкова', profession: 'Мастер маникюра', city: 'Самара', slug: 'anna-volkova',
   headline: 'Маникюр, к которому хочется возвращаться', about: 'Я создаю аккуратный и ноский маникюр, внимательно отношусь к пожеланиям и всегда заранее объясняю стоимость и этапы работы.',
   phone: '+7 999 000-00-00', messenger: '', social: '', bookingLink: '', appBookingLink: '', requestTelegram: '', requestWhatsApp: '', requestEmail: '', address: 'Центр Самары', schedule: 'Пн–Сб, 10:00–20:00', theme: 'coral', customColor: '#A779DC', photo: '', experience: '6 лет', workplace: 'Студия в центре города', bookingMode: 'app',
-  ownerLegalStatus: '', ownerLegalName: '', ownerInn: '', ownerOgrn: '', ownerAddress: '', ownerEmail: '', ownerPhone: '', acquiring: '',
+  ownerLegalStatus: '', ownerLegalName: '', ownerInn: '', ownerOgrn: '', ownerAddress: '', ownerEmail: '', ownerPhone: '', ownerSettlementAccount: '', ownerBankName: '', ownerBik: '', ownerCorrespondentAccount: '', acquiring: '', onlineDataMode: 'ecosystem',
   advantages: ['Бережная работа', 'Цена известна заранее', 'Удобная запись'], gallery: [], reviews: [], reviewImages: [],
   items: [{name:'Маникюр с покрытием',price:'2 300 ₽',meta:'2 часа'},{name:'Снятие и маникюр',price:'1 400 ₽',meta:'1,5 часа'},{name:'Укрепление ногтей',price:'700 ₽',meta:'30 минут'}]
 };
@@ -148,7 +148,10 @@ const whatsappHref = data.requestWhatsApp ? (data.requestWhatsApp.startsWith('ht
 const emailHref = data.requestEmail ? `mailto:${data.requestEmail}` : '';
 let contact = data.bookingLink || data.messenger || (phoneHref ? `tel:${phoneHref}` : '#');
 let contactLabel = instructor ? 'Оставить заявку' : 'Записаться';
-if (!instructor && data.bookingMode === 'app' && data.appBookingLink) {
+if (onlinePending && data.onlineDataMode !== 'own') {
+  contact = '#contact';
+  contactLabel = 'Оставить заявку в SeeU';
+} else if (!instructor && data.bookingMode === 'app' && data.appBookingLink) {
   contact = data.appBookingLink;
   contactLabel = 'Записаться в SeeU';
 } else if (!instructor && data.bookingMode === 'request') {
@@ -190,31 +193,47 @@ if (!instructor && data.bookingMode === 'request') {
 }
 
 const independentOperator = instructor || (!instructor && data.bookingMode === 'request');
-const baseLegalDocs = [
-  'Пользовательское соглашение',
-  'Политика обработки персональных данных',
-  'Согласие на обработку и передачу данных',
-  'Политика cookies',
-  'Публичная оферта и условия расчётов'
+const ecosystemPayment = onlinePending && data.onlineDataMode !== 'own';
+const baseLegalDocs = onlinePending ? [
+  ['Публичная оферта платформы', 'SeeU'],
+  ['Политика конфиденциальности', 'SeeU'],
+  ['Согласие на обработку и передачу данных', 'SeeU → специалист'],
+  ['Политика cookies', 'SeeU'],
+  ['Договор оказания услуг', 'Специалист'],
+  ['Политика оплаты, отказа и возврата', 'Специалист'],
+  ['Отдельные согласия на рекламу', 'SeeU / специалист']
+] : [
+  ['Пользовательское соглашение', 'SeeU'],
+  ['Политика обработки персональных данных', independentOperator ? 'SeeU + специалист' : 'SeeU'],
+  ['Согласие на обработку и передачу данных', independentOperator ? 'SeeU → специалист' : 'SeeU'],
+  ['Политика cookies', 'SeeU'],
+  ['Публичная оферта и условия сервиса', 'SeeU']
 ];
 const legalDocs = document.querySelector('[data-legal-docs]');
-baseLegalDocs.forEach((title, index) => {
+baseLegalDocs.forEach(([title, party], index) => {
   const item = document.createElement('button');
   item.type = 'button';
   item.disabled = true;
-  item.innerHTML = `<span>${String(index + 1).padStart(2, '0')}</span><strong>${title}</strong><small>единый документ · условия подставляются автоматически</small>`;
+  item.innerHTML = `<span>${String(index + 1).padStart(2, '0')}</span><strong>${title}</strong><small>сторона: ${party}</small>`;
   legalDocs.append(item);
 });
 
 if (independentOperator) {
   const operator = document.querySelector('[data-legal-operator]');
   operator.hidden = false;
-  setText('[data-legal-operator-label]', onlinePending ? 'Продавец и самостоятельный оператор' : 'Самостоятельный оператор после передачи заявки');
-  setText('[data-legal-name]', data.ownerLegalName || data.displayName);
-  const details = [data.ownerLegalStatus, data.ownerInn && `ИНН ${data.ownerInn}`, data.ownerOgrn && `ОГРН/ОГРНИП ${data.ownerOgrn}`, data.ownerAddress, data.ownerEmail].filter(Boolean);
-  setText('[data-legal-details]', details.join(' · ') || 'Реквизиты будут добавлены после заполнения брифа');
+  setText('[data-legal-operator-label]', onlinePending ? 'Две стороны — отдельные зоны ответственности' : 'Самостоятельный оператор после передачи заявки');
+  setText('[data-legal-name]', onlinePending ? `SeeU + ${data.ownerLegalName || data.displayName}` : data.ownerLegalName || data.displayName);
+  const details = [data.ownerLegalStatus, data.ownerInn && `ИНН ${data.ownerInn}`, data.ownerOgrn && `ОГРН/ОГРНИП ${data.ownerOgrn}`, data.ownerAddress, data.ownerEmail, data.ownerSettlementAccount && `р/с ${data.ownerSettlementAccount}`, data.ownerBankName, data.ownerBik && `БИК ${data.ownerBik}`, data.ownerCorrespondentAccount && `к/с ${data.ownerCorrespondentAccount}`].filter(Boolean);
+  const scopes = onlinePending
+    ? ecosystemPayment
+      ? 'SeeU — платформа, хранение базы, доступы и техническая обработка. Специалист — продавец, эквайринг, обучение, возвраты и исполнение обязательств.'
+      : 'SeeU — первичный сбор и передача заявки. Специалист — собственная база, продажа, эквайринг, обучение и возвраты.'
+    : '';
+  setText('[data-legal-details]', [scopes, ...details].filter(Boolean).join(' · ') || 'Реквизиты будут добавлены после заполнения брифа');
   setText('[data-legal-scope]', onlinePending
-    ? 'Используется единый комплект документов SeeU. В нём специалист дополнительно указывается как продавец и оператор, добавляются его реквизиты и условия приёма оплаты.'
+    ? ecosystemPayment
+      ? 'База учеников остаётся внутри SeeU, а оплата поступает специалисту. Документы обеих сторон размещаются вместе и отдельно определяют права, обязанности и ответственность каждой стороны.'
+      : 'SeeU передаёт заявку специалисту, который ведёт собственную базу и принимает оплату. Документы обеих сторон разграничивают обработку данных и продажу услуги.'
     : 'SeeU обеспечивает форму и передачу заявки. После её передачи в выбранный мессенджер или почту дальнейшую обработку клиентской базы самостоятельно осуществляет указанный специалист.');
 } else {
   setText('[data-legal-scope]', 'Запись и обработка данных выполняются внутри экосистемы SeeU по единому комплекту документов платформы.');
