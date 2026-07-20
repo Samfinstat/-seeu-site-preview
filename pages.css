@@ -490,6 +490,7 @@
 .referral-rules b { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; border-radius: 10px; background: rgba(38,32,41,.08); font-size: 10px; }
 .referral-rules span { display: grid; gap: 3px; color: var(--muted); font-size: 11px; line-height: 1.35; }
 .referral-rules strong { color: var(--dark); font-size: 12px; }
+.referral-rules--extended p:last-child { grid-column: span 2; }
 
 .student-flow {
   display: grid;
@@ -551,6 +552,7 @@
   .referral-table, .duration-grid { grid-template-columns: 1fr; }
   .referral-calculator { padding: 28px; }
   .referral-rules { grid-template-columns: 1fr; }
+  .referral-rules--extended p:last-child { grid-column: auto; }
   .marking-flow article { grid-template-columns: 52px 1fr; }
   .marking-flow em { grid-column: 2; width: max-content; }
 }
